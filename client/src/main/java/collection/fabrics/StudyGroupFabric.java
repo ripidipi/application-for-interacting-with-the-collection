@@ -107,17 +107,19 @@ public class StudyGroupFabric {
                     PrimitiveDataInput.input("name", String.class);
 
             Long coordX = (index < inputSplit.length) ?
-                    (inputSplit[index++].isBlank() ?
+                    (inputSplit[index].isBlank() ?
                             null :
-                            PrimitiveDataInput.inputFromFile("x", inputSplit[index++], Long.class)) :
+                            PrimitiveDataInput.inputFromFile("x", inputSplit[index], Long.class)) :
                     PrimitiveDataInput.input("x coordinate", Long.class, false,
                             false, false, null);
+                    index++;
             Float coordY = (index < inputSplit.length) ?
-                    (inputSplit[index++].isBlank() ?
+                    (inputSplit[index].isBlank() ?
                             null :
-                            PrimitiveDataInput.inputFromFile("y", inputSplit[index++], Float.class)) :
+                            PrimitiveDataInput.inputFromFile("y", inputSplit[index], Float.class)) :
                     PrimitiveDataInput.input("y coordinate", Float.class, false,
                             false, false, null);
+                    index++;
             Coordinates coordinates = new Coordinates(coordX, coordY);
 
             Integer studentCount = (index < inputSplit.length) ?

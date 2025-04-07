@@ -2,6 +2,7 @@ import commands.Exit;
 import exceptions.RemoveOfTheNextSymbol;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
+import io.ServerSetting;
 import storage.Logging;
 import storage.RequestPair;
 import storage.SavingAnEmergencyStop;
@@ -16,9 +17,6 @@ import java.util.Scanner;
 
 public class ClientApp {
 
-    private static final String SERVER_HOST = "127.0.0.1";
-    private static final int SERVER_PORT = 9999;
-
     public static void main(String[] args) {
         initialize();
         runCommandLoop();
@@ -27,7 +25,7 @@ public class ClientApp {
     public static void runCommandLoop() {
         try (DatagramChannel client = DatagramChannel.open()) {
             client.configureBlocking(false);
-            client.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
+            client.connect(new InetSocketAddress(ServerSetting.getServerHost(), ServerSetting.getServerPort()));
 
             while (Exit.running) {
                 System.out.print("Enter the command: ");
@@ -79,8 +77,8 @@ public class ClientApp {
     }
 
     private static void initialize() {
-        checkPreviousSession();
         Logging.initialize();
+        checkPreviousSession();
     }
 
     private static void runPreviousSession() {

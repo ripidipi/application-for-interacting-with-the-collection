@@ -101,14 +101,14 @@ public class PersonFabric {
                         true, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
 
         Double height = (index < inputSplit.length) ?
-                (inputSplit[index++].isBlank()) ?
+                (inputSplit[index].isBlank()) ?
                         null :
-                        PrimitiveDataInput.inputFromFile("adminHeight", inputSplit[index++],
+                        PrimitiveDataInput.inputFromFile("adminHeight", inputSplit[index],
                                 Double.class, false, true,
                                 false, null, false) :
                 PrimitiveDataInput.input("admin height", Double.class, false,
                         true, false, null);
-
+                index++;
         String adminPassport = (index < inputSplit.length) ?
                 PrimitiveDataInput.inputFromFile("adminPassportID", inputSplit[index++], String.class) :
                 PrimitiveDataInput.input("admin passportID", String.class);

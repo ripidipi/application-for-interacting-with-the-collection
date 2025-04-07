@@ -1,11 +1,15 @@
 package storage;
 
 import commands.Commands;
+import commands.Exit;
+import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
+import io.ServerSetting;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
@@ -66,7 +70,46 @@ public class SavingAnEmergencyStop {
             String[] values = line.split(",");
             Commands command = Enum.valueOf(Commands.class, values[0].toUpperCase());
             DistributionOfTheOutputStream.println("Continue work with command: " + command.name());
-            command.execute(line, "M");
+            sentRequestToServer(command.execute(line, "M"));
+        } catch (Exception e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        }
+    }
+
+    public static void sentRequestToServer(RequestPair<?> request) {
+        try (DatagramChannel client = DatagramChannel.open()) {
+            client.configureBlocking(false);
+            client.connect(
+                    new InetSocketAddress(ServerSetting.getServerHost(), ServerSetting.getServerPort()));
+
+            // to bite
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
+            objectOut.writeObject(request);
+            objectOut.flush();
+            byte[] bytes = byteOut.toByteArray();
+
+            // send
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            client.write(buffer);
+
+            // take response
+            ByteBuffer receiveBuffer = ByteBuffer.allocate(4096);
+            long startTime = System.currentTimeMillis();
+
+
+            while (receiveBuffer.position() == 0) {
+                if (System.currentTimeMillis() - startTime > 3000) {
+                    System.out.println("Server unavailable.");
+                    Exit.exit();
+                }
+                client.read(receiveBuffer);
+            }
+
+            receiveBuffer.flip();
+            String response = new String(receiveBuffer.array(), 0,
+                    receiveBuffer.limit(), StandardCharsets.UTF_8);
+            DistributionOfTheOutputStream.printFromServer(response);
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
