@@ -75,7 +75,7 @@ public class SavingAnEmergencyStop {
             client.connect(
                     new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            Server.interaction(client, request);
+            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }

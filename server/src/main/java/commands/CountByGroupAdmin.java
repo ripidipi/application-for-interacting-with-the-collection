@@ -22,15 +22,13 @@ public class CountByGroupAdmin implements Helpable, Command<Person> {
      * Counts the number of study groups where the user-specified person is the admin.
      */
     public static void countByGroupAdmin(Person person) {
-        TreeSet<StudyGroup> studyGroups = Collection.getInstance().getCollection();
-        int adminCounter = 0;
-        for (StudyGroup studyGroup : studyGroups) {
-            if (Objects.equals(studyGroup.getGroupAdmin(), person)) {
-                adminCounter++;
-            }
-        }
+        long adminCounter = Collection.getInstance().getCollection()
+                .stream()
+                .filter(studyGroup -> Objects.equals(studyGroup.getGroupAdmin(), person))
+                .count();
         DistributionOfTheOutputStream.println("The person is an admin in " + adminCounter + " groups.");
     }
+
 
     @Override
     public void execute(Person person, boolean muteMode) {

@@ -5,6 +5,7 @@ import io.DistributionOfTheOutputStream;
 import io.Server;
 import storage.Logging;
 import storage.RequestPair;
+import storage.RunningFiles;
 import storage.SavingAnEmergencyStop;
 
 import java.net.*;
@@ -27,9 +28,9 @@ public class ClientApp {
                 System.out.print("Enter the command: ");
 
                 RequestPair<?> request = CommandsHandler.input();
-
-                Server.interaction(client, request);
-
+                if (request != null) {
+                    DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
+                }
             }
         } catch (PortUnreachableException e) {
             DistributionOfTheOutputStream.println("Problem to connect to the server.");
@@ -48,7 +49,9 @@ public class ClientApp {
 
     private static void initialize() {
         Logging.initialize();
+        RunningFiles.getInstance();
         checkPreviousSession();
+        DistributionOfTheOutputStream.clear();
     }
 
     private static void runPreviousSession() {

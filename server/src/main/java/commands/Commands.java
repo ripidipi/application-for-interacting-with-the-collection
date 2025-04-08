@@ -52,7 +52,9 @@ public enum Commands {
     GROUP_COUNTING_BY_ID(new GroupCountingById()),
 
     /** count_by_group_admin groupAdmin : display the number of elements whose groupAdmin field value matches the given one */
-    COUNT_BY_GROUP_ADMIN(new CountByGroupAdmin());
+    COUNT_BY_GROUP_ADMIN(new CountByGroupAdmin()),
+
+    CHECK_IS_WITH_ID(new CheckIsWithId());
 
     private final Command<?> command;
 

@@ -2,13 +2,8 @@ package collection.fabrics;
 
 import collection.*;
 import commands.Exit;
-import exceptions.CommandDataFromTheFileIsIncorrect;
-import exceptions.InsufficientNumberOfArguments;
-import exceptions.RemoveOfTheNextSymbol;
-import io.DistributionOfTheOutputStream;
-import io.EnumInput;
-import io.EnumTransform;
-import io.PrimitiveDataInput;
+import exceptions.*;
+import io.*;
 import storage.Logging;
 
 import java.time.LocalDateTime;
@@ -189,11 +184,15 @@ public class StudyGroupFabric {
     }
 
 
-    public static StudyGroup parseStudyGroup(String arg, String inputMode, String commandName)
-            throws InsufficientNumberOfArguments, RemoveOfTheNextSymbol {
+    public static StudyGroup parseStudyGroup(String arg, String inputMode, String commandName, boolean isId)
+            throws InsufficientNumberOfArguments, RemoveOfTheNextSymbol, IncorrectConstant {
         StudyGroup studyGroup;
         if (inputMode.equalsIgnoreCase("C")) {
-            Integer id = PrimitiveDataInput.input("id", Integer.class);
+            Integer id;
+            if (isId) {
+                id = getIdInteger(arg);
+            } else
+                id = PrimitiveDataInput.input("id", Integer.class);
             studyGroup = StudyGroupFabric.getStudyGroupFrom("C", new String[]{id.toString()}, false, true);
         } else {
             String[] inputSplit = arg.split(",");
@@ -207,6 +206,13 @@ public class StudyGroupFabric {
         return studyGroup;
     }
 
+    public static Integer getIdInteger(String arg) {
+        Integer id;
+        id = PrimitiveDataInput.inputFromFile("id", arg, Integer.class);
+        if (id == null)
+            throw new IncorrectValue("id");
+        return id;
+    }
 
 
 }

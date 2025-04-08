@@ -7,7 +7,7 @@ import io.PreparingOfOutputStream;
 import storage.FillCollectionFromFile;
 import storage.Logging;
 import storage.RequestPair;
-import storage.RunningFiles;
+import storage.Server;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,45 +18,22 @@ import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 
 public class ServerApp {
-    private static final int PORT = 9999;
 
     public static void main(String[] args) {
         initializeApplication();
         listenLoop();
     }
 
-    private static ClientRequest readFromClient(DatagramChannel server, ByteBuffer buffer) throws IOException {
-        buffer.clear();
-        SocketAddress clientAddress = server.receive(buffer);
-
-        if (clientAddress == null) {
-            return null;
-        }
-
-        buffer.flip();
-        ByteArrayInputStream byteIn = new ByteArrayInputStream(buffer.array(), 0, buffer.limit());
-        ObjectInputStream objectIn = new ObjectInputStream(byteIn);
-
-        return new ClientRequest(clientAddress, objectIn);
-    }
-
-
-    private static void sendResponse(DatagramChannel server,SocketAddress address) throws IOException {
-        String response = PreparingOfOutputStream.getOutMessage();
-        ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8));
-        server.send(responseBuffer, address);
-    }
-
     private static void listenLoop() {
         try (DatagramChannel server = DatagramChannel.open()) {
             server.configureBlocking(false);
-            server.bind(new InetSocketAddress(PORT));
-            System.out.println("Server waiting on port - " + PORT);
+            server.bind(new InetSocketAddress(Server.getServerPort()));
+            System.out.println("Server waiting on port - " + Server.getServerPort());
 
             ByteBuffer buffer = ByteBuffer.allocate(4096);
 
             while (true) {
-                ClientRequest requestWrapper = readFromClient(server, buffer);
+                ClientRequest requestWrapper = Server.readFromClient(server, buffer);
                 if (requestWrapper == null) {
                     continue;
                 }
@@ -66,7 +43,7 @@ public class ServerApp {
                 PreparingOfOutputStream.clear();
                 CommandsHandler.execute(request, false);
 
-                sendResponse(server, requestWrapper.address);
+                Server.sendResponse(server, requestWrapper.address);
             }
 
         } catch (Exception e) {
@@ -79,7 +56,6 @@ public class ServerApp {
 
     private static void initializeApplication() {
         Collection.getInstance();
-        RunningFiles.getInstance();
         Help help = Help.getInstance();
         Logging.initialize();
 

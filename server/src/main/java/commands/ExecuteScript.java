@@ -1,7 +1,6 @@
 package commands;
 
 import storage.Logging;
-import storage.RunningFiles;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import exceptions.IncorrectValue;
@@ -20,7 +19,7 @@ public class ExecuteScript implements Helpable, Command<Void> {
     public static void executeScript() {
         executeScriptMode ^= true;
         DistributionOfTheOutputStream.printlnC(
-                executeScriptMode ? "Execute script started" : "Execute script failed");
+                executeScriptMode ? "Execute script started" : "Execute script finished");
     }
 
     /**

@@ -9,6 +9,7 @@ import exceptions.InfiniteRecursion;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
 import storage.RequestPair;
+import storage.RunningFiles;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
@@ -29,20 +30,32 @@ public class ExecuteScript implements Helpable, Command {
      * @param fileName The name of the script file to execute.
      */
     public static void executeScript(String fileName) {
+        executeScriptMode = true;
+        DistributionOfTheOutputStream.printlnToFile("Starting script execution: " + fileName);
         try (DatagramChannel client = DatagramChannel.open()) {
+            if (fileName == null || fileName.isEmpty()) {
+                throw new IncorrectValue("File name cannot be empty.");
+            }
+
+            if (RunningFiles.getInstance().isThere(fileName.toUpperCase())) {
+                throw new InfiniteRecursion("Infinite recursion detected with file: " + fileName);
+            }
+            RunningFiles.getInstance().addFileName(fileName.toUpperCase());
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            Server.interaction(client, new RequestPair<>(Commands.EXECUTE_SCRIPT, null));
+            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, new RequestPair<>(Commands.EXECUTE_SCRIPT, null)));
 
-            ArrayList<RequestPair<?>> requests = CommandsHandler.inputFromFile(fileName);
+            CommandsHandler.inputFromFile(fileName);
 
-            for (RequestPair<?> request : requests) {
-                if (request != null)
-                    Server.interaction(client, request);
-            }
+        } catch (IncorrectValue | InfiniteRecursion e) {
+            DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+
+        } finally {
+            DistributionOfTheOutputStream.printlnToFile("");
+            executeScriptMode = false;
         }
     }
 

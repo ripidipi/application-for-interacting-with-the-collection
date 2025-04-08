@@ -11,6 +11,8 @@ import commands.Exit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.InetSocketAddress;
+import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -103,8 +105,7 @@ public class CommandsHandler {
      *
      * @param filePath the path to the input file
      */
-    public static ArrayList<RequestPair<?>> inputFromFile(String filePath) {
-        ArrayList<RequestPair<?>> requests = new ArrayList<>();
+    public static void inputFromFile(String filePath) {
         try {
             if (filePath == null || filePath.isEmpty()) {
                 throw new ConnectionToFileFailed("Connection to environment path failed " + filePath);
@@ -116,10 +117,15 @@ public class CommandsHandler {
 
             try (Scanner scanner = new Scanner(file)) {
                 while (scanner.hasNextLine()) {
-                    try {
+                    try (DatagramChannel client = DatagramChannel.open()) {
+                        client.configureBlocking(false);
+                        client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
+
                         String line = scanner.nextLine();
                         String[] values = line.split(",");
-                        requests.add(isCommand(values, "F"));
+                        RequestPair<?> request = isCommand(values, "F");
+                        if(request != null)
+                            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
                     } catch (Exception e) {
                         Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                     }
@@ -130,6 +136,5 @@ public class CommandsHandler {
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
-        return requests;
     }
 }

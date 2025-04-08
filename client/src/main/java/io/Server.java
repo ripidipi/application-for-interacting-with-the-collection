@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 public class Server {
 
     private static final String SERVER_HOST = "127.0.0.1";
-    private static final int SERVER_PORT = 9999;
+    private static final int SERVER_PORT = 9911;
 
     public static String getServerHost() {
         return SERVER_HOST;
@@ -23,7 +23,7 @@ public class Server {
         return SERVER_PORT;
     }
 
-    public static void interaction(DatagramChannel client, RequestPair<?> request) throws IOException {
+    public static String interaction(DatagramChannel client, RequestPair<?> request) throws IOException {
         // to bite
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
@@ -41,16 +41,16 @@ public class Server {
 
 
         while (receiveBuffer.position() == 0) {
-//            if (System.currentTimeMillis() - startTime > 3000) {
-//                System.out.println("Server unavailable.");
-//                Exit.exit();
-//            }
+            if (System.currentTimeMillis() - startTime > 1e4) {
+                System.out.println("Server unavailable.");
+                Exit.exit();
+                return null;
+            }
             client.read(receiveBuffer);
         }
 
         receiveBuffer.flip();
-        String response = new String(receiveBuffer.array(), 0,
+        return new String(receiveBuffer.array(), 0,
                 receiveBuffer.limit(), StandardCharsets.UTF_8);
-        DistributionOfTheOutputStream.printFromServer(response);
     }
 }

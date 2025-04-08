@@ -14,9 +14,7 @@ public interface Command <T> {
     /**
      * Method for all commands. Perform main functional
      */
-    default void execute(T input, boolean muteMode) {
-        DistributionOfTheOutputStream.println("Rewrite execute");
-    }
+    void execute(T input, boolean muteMode);
 
 
     /**
@@ -28,15 +26,9 @@ public interface Command <T> {
      */
     static void remove(StudyGroup studyGroup, BiPredicate<StudyGroup, StudyGroup> compare) {
         TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-        ArrayList<StudyGroup> toRemove = new ArrayList<>();
-        for (StudyGroup sG : collection) {
-            if (compare.test(sG, studyGroup)) {
-                toRemove.add(sG);
-            }
-        }
-        for (StudyGroup sG : toRemove) {
-            collection.remove(sG);
-        }
+
+        collection.removeIf(sG -> compare.test(sG, studyGroup));
     }
+
 
 }

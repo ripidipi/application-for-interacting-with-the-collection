@@ -20,15 +20,10 @@ public class RemoveById implements Helpable, Command<Integer> {
     private static void removeById(Integer id) {
         try {
             TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-            Iterator<StudyGroup> iterator = collection.iterator();
-
-            while (iterator.hasNext()) {
-                StudyGroup studyGroup = iterator.next();
-                if (Objects.equals(studyGroup.getId(), id)) {
-                    iterator.remove();
-                    break;
-                }
-            }
+            collection.stream()
+                    .filter(sg -> Objects.equals(sg.getId(), id))
+                    .findFirst()
+                    .ifPresent(collection::remove);
             DistributionOfTheOutputStream.println("Object has been removed.");
         } catch (RuntimeException e) {
             DistributionOfTheOutputStream.println(e.getMessage());

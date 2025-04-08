@@ -20,7 +20,7 @@ public class RemoveGreater implements Helpable, Command {
     @Override
     public RequestPair<?> execute(String arg, String inputMode) {
         try {
-            StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "RemoveGreater");
+            StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "RemoveGreater", false);
             return new RequestPair<>(Commands.REMOVE_GREATER, studyGroup);
         } catch (InsufficientNumberOfArguments e) {
             DistributionOfTheOutputStream.println(e.getMessage());

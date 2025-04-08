@@ -7,6 +7,7 @@ import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import io.DistributionOfTheOutputStream;
 
+import java.util.Comparator;
 import java.util.TreeSet;
 
 /**
@@ -38,11 +39,10 @@ public class AddIfMax implements Helpable, Command<StudyGroup> {
      */
     private static boolean isMax(StudyGroup studyGroup) {
         TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-        if (collection.isEmpty()) {
-            return true;
-        }
-        StudyGroup maxStudyGroup = collection.last();
-        return maxStudyGroup.compareTo(studyGroup) < 0;
+        return collection.stream()
+                .max(Comparator.naturalOrder())
+                .map(maxStudyGroup -> maxStudyGroup.compareTo(studyGroup) < 0)
+                .orElse(true);
     }
 
 

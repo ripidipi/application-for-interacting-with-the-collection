@@ -21,13 +21,13 @@ public class Update implements Helpable, Command<StudyGroup> {
 
     private static void update(StudyGroup studyGroup) {
         TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-        for (StudyGroup sG : collection) {
-            if (Objects.equals(sG.getId(), studyGroup.getId())) {
-                Collection.getInstance().removeElement(sG);
-                Collection.getInstance().addElement(studyGroup);
-                break;
-            }
-        }
+        collection.stream()
+                .filter(sg -> Objects.equals(sg.getId(), studyGroup.getId()))
+                .findFirst()
+                .ifPresent(sg -> {
+                    Collection.getInstance().removeElement(sg);
+                    Collection.getInstance().addElement(studyGroup);
+                });
         DistributionOfTheOutputStream.println("Study group " + studyGroup.getId() + " is successfully updated");
     }
 

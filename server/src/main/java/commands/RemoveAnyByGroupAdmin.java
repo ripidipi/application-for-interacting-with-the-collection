@@ -27,14 +27,10 @@ public class RemoveAnyByGroupAdmin implements Helpable, Command<Person> {
      */
     static void removeGroupByAdmin(Person person) {
         TreeSet<StudyGroup> studyGroups = Collection.getInstance().getCollection();
-        Iterator<StudyGroup> iterator = studyGroups.iterator();
-        while (iterator.hasNext()) {
-            StudyGroup studyGroup = iterator.next();
-            if (Objects.equals(studyGroup.getGroupAdmin(), person)) {
-                iterator.remove();
-                break;
-            }
-        }
+        studyGroups.stream()
+                .filter(sg -> Objects.equals(sg.getGroupAdmin(), person))
+                .findFirst()
+                .ifPresent(studyGroups::remove);
     }
 
     @Override

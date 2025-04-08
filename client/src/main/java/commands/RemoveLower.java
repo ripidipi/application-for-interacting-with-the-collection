@@ -20,7 +20,7 @@ public class RemoveLower implements Helpable, Command {
     @Override
     public RequestPair<?> execute(String arg, String inputMode) {
         try {
-            StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "RemoveLower");
+            StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "RemoveLower", false);
             return new RequestPair<>(Commands.REMOVE_LOWER, studyGroup);
         } catch (InsufficientNumberOfArguments e) {
             DistributionOfTheOutputStream.println(e.getMessage());

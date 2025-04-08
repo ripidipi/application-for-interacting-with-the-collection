@@ -1,6 +1,7 @@
 package collection;
 
 import storage.Logging;
+import storage.Server;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -91,7 +92,7 @@ public class Collection {
      */
     public static void output() {
         TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-        String csvFile = "collection.csv";
+        String csvFile = Server.getCollectionPath();
         File file = new File(csvFile);
 
         if (file.exists()) {

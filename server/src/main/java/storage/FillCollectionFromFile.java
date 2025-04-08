@@ -26,7 +26,7 @@ public class FillCollectionFromFile {
      */
     public static void fillCollectionFromFile() {
         try {
-            String fileName = System.getenv("CSV_FILE_NAME");
+            String fileName = Server.getCollectionPath();
             CommandsHandler.inputFromFile(fileName, FillCollectionFromFile::parseObject);
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
