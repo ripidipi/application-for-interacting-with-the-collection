@@ -44,6 +44,7 @@ public class Update implements Helpable, Command {
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
             String response = Server.interaction(client, new RequestPair<>(Commands.CHECK_IS_WITH_ID, id));
+            if (response == null) {return true;}
             return response.contains("true");
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));

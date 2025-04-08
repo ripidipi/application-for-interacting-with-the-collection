@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Server {
 
-    private static final String SERVER_HOST = "127.0.0.1";
+    private static final String SERVER_HOST = "helios.cs.ifmo.ru";
     private static final int SERVER_PORT = 9911;
 
     public static String getServerHost() {

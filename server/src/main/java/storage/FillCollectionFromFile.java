@@ -49,7 +49,7 @@ public class FillCollectionFromFile {
                     Objects.equals(inputSplit[9], " ") ? null : Double.parseDouble(inputSplit[9]), inputSplit[10]);
             return new StudyGroup(id, name, coordinates, studentCount, formOfEducation, semester, groupAdmin);
         } catch (Exception e) {
-            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace())); // TODO
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
         return null;
     }
