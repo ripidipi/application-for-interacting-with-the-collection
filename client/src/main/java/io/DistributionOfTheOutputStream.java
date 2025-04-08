@@ -23,7 +23,7 @@ public interface DistributionOfTheOutputStream {
      */
     static void clear() {
         try {
-            File file = new File("data/output.txt");
+            File file = new File(OutputFileSettings.getOutputFilePath());
             if (file.exists())
                 file.delete();
         } catch (Exception e) {
@@ -64,7 +64,7 @@ public interface DistributionOfTheOutputStream {
      * @param message The message to be written to the file.
      */
     static void printlnToFile(String message) {
-        String fileName = "data/output.txt";
+        String fileName = OutputFileSettings.getOutputFilePath();
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(fileName, true), StandardCharsets.UTF_8)) {
             writer.write(message);
@@ -81,7 +81,7 @@ public interface DistributionOfTheOutputStream {
      * @param message The message to be written to the file.
      */
     static void printToFile(String message) {
-        String fileName = "data/output.txt";
+        String fileName = OutputFileSettings.getOutputFilePath();
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(fileName, true), StandardCharsets.UTF_8)) {
             writer.write(message);

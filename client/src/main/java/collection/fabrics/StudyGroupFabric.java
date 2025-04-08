@@ -198,7 +198,7 @@ public class StudyGroupFabric {
         } else {
             String[] inputSplit = arg.split(",");
             if (inputMode.equalsIgnoreCase("F") &&
-                    Collection.formatStudyGroupToCSV(StudyGroupFabric.getEmptyStudyGroup()).split(",").length
+                    StudyGroup.formatStudyGroupToCSV(StudyGroupFabric.getEmptyStudyGroup()).split(",").length
                             != inputSplit.length) {
                 throw new InsufficientNumberOfArguments(commandName);
             }

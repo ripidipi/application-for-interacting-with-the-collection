@@ -1,1 +1,17 @@
 Logging Initialized
+[ERROR] collection.StudyGroup; local class incompatible: stream classdesc serialVersionUID = 1369627050180959377, local class serialVersionUID = 6676309963345150546
+[java.base/java.io.ObjectStreamClass.initNonProxy(ObjectStreamClass.java:604)
+, java.base/java.io.ObjectInputStream.readNonProxyDesc(ObjectInputStream.java:2072)
+, java.base/java.io.ObjectInputStream.readClassDesc(ObjectInputStream.java:1915)
+, java.base/java.io.ObjectInputStream.readOrdinaryObject(ObjectInputStream.java:2246)
+, java.base/java.io.ObjectInputStream.readObject0(ObjectInputStream.java:1750)
+, java.base/java.io.ObjectInputStream$FieldValues.<init>(ObjectInputStream.java:2625)
+, java.base/java.io.ObjectInputStream.readRecord(ObjectInputStream.java:2379)
+, java.base/java.io.ObjectInputStream.readOrdinaryObject(ObjectInputStream.java:2272)
+, java.base/java.io.ObjectInputStream.readObject0(ObjectInputStream.java:1750)
+, java.base/java.io.ObjectInputStream.readObject(ObjectInputStream.java:528)
+, java.base/java.io.ObjectInputStream.readObject(ObjectInputStream.java:486)
+, ServerApp.listenLoop(ServerApp.java:64)
+, ServerApp.main(ServerApp.java:25)
+]
+

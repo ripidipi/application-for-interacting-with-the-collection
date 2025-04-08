@@ -1,6 +1,7 @@
 package storage;
 
 import io.DistributionOfTheOutputStream;
+import io.OutputFileSettings;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,22 +16,17 @@ import java.util.Arrays;
 public class Logging {
 
     /**
-     * Name of the primary log file.
-     */
-    static final String fileName = "client/data/log.txt";
-
-    /**
      * Initializes the log file by deleting any existing file and writing an initialization message.
      * This method will overwrite the existing log file if it already exists.
      * If there is an error during initialization, it will be caught and printed as a message.
      */
     public static void initialize() {
-        File file = new File(fileName);
+        File file = new File(OutputFileSettings.getLoggingFilePath());
         if (file.exists()) {
             file.delete();
         }
         try (OutputStreamWriter writer = new OutputStreamWriter(
-                new FileOutputStream(fileName), StandardCharsets.UTF_8)) {
+                new FileOutputStream(OutputFileSettings.getLoggingFilePath()), StandardCharsets.UTF_8)) {
             writer.write("Logging Initialized \n");
         } catch (Exception e) {
             DistributionOfTheOutputStream.println("Logging error");
@@ -46,14 +42,14 @@ public class Logging {
      */
     public static void log(String message) {
 
-        File file = new File(fileName);
+        File file = new File(OutputFileSettings.getLoggingFilePath());
 
         if (!file.exists()) {
             initialize();
         }
 
         try (OutputStreamWriter writer = new OutputStreamWriter(
-                new FileOutputStream(fileName, true), StandardCharsets.UTF_8)) {
+                new FileOutputStream(OutputFileSettings.getLoggingFilePath(), true), StandardCharsets.UTF_8)) {
             writer.write(message);
             writer.write(System.lineSeparator());
         } catch (Exception e) {

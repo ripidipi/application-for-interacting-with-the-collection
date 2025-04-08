@@ -11,6 +11,7 @@ import commands.Exit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.function.BiFunction;
@@ -101,9 +102,9 @@ public class CommandsHandler {
      * Each line of the file is parsed, and commands are executed based on the content.
      *
      * @param filePath the path to the input file
-     * @param handler  a function to process each line of input
      */
-    public static void inputFromFile(String filePath, BiFunction<String[], String, Void> handler) {
+    public static ArrayList<RequestPair<?>> inputFromFile(String filePath) {
+        ArrayList<RequestPair<?>> requests = new ArrayList<>();
         try {
             if (filePath == null || filePath.isEmpty()) {
                 throw new ConnectionToFileFailed("Connection to environment path failed " + filePath);
@@ -112,15 +113,13 @@ public class CommandsHandler {
             if (!file.exists() || !file.isFile()) {
                 throw new ConnectionToFileFailed("File path doesn't found " + filePath);
             }
+
             try (Scanner scanner = new Scanner(file)) {
                 while (scanner.hasNextLine()) {
                     try {
                         String line = scanner.nextLine();
                         String[] values = line.split(",");
-                        if (convertToEnum(values[0] + "_F")) {
-                            values[0] = values[0] + "_F";
-                        }
-                        handler.apply(values, "F");
+                        requests.add(isCommand(values, "F"));
                     } catch (Exception e) {
                         Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                     }
@@ -131,5 +130,6 @@ public class CommandsHandler {
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
+        return requests;
     }
 }

@@ -1,14 +1,12 @@
 package storage;
 
 import commands.Commands;
-import commands.Exit;
-import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
-import io.ServerSetting;
+import io.OutputFileSettings;
+import io.Server;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
@@ -20,18 +18,13 @@ import java.util.Scanner;
 public class SavingAnEmergencyStop {
 
     /**
-     * Name of the primary emergency stop file.
-     */
-    static final String emergencyFile = "client/data/emergency_stop.csv";
-
-    /**
      * Adds a message to the emergency stop file. The message is appended to the file.
      *
      * @param message The message to be added to the emergency stop file.
      */
     public static void addStringToFile(String message) {
 
-        File file = new File(emergencyFile);
+        File file = new File(OutputFileSettings.getEmergencyFilePath());
 
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
@@ -47,7 +40,7 @@ public class SavingAnEmergencyStop {
      */
     public static void clearFile() {
 
-        File file = new File(emergencyFile);
+        File file = new File(OutputFileSettings.getEmergencyFilePath());
 
         if (file.exists()) {
             file.delete();
@@ -60,7 +53,7 @@ public class SavingAnEmergencyStop {
      */
     public static void recapCommandFromFile() {
 
-        File file = new File(emergencyFile);
+        File file = new File(OutputFileSettings.getEmergencyFilePath());
 
         try (Scanner scanner = new Scanner(file)) {
             String line = scanner.nextLine();
@@ -80,36 +73,9 @@ public class SavingAnEmergencyStop {
         try (DatagramChannel client = DatagramChannel.open()) {
             client.configureBlocking(false);
             client.connect(
-                    new InetSocketAddress(ServerSetting.getServerHost(), ServerSetting.getServerPort()));
+                    new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            // to bite
-            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-            ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
-            objectOut.writeObject(request);
-            objectOut.flush();
-            byte[] bytes = byteOut.toByteArray();
-
-            // send
-            ByteBuffer buffer = ByteBuffer.wrap(bytes);
-            client.write(buffer);
-
-            // take response
-            ByteBuffer receiveBuffer = ByteBuffer.allocate(4096);
-            long startTime = System.currentTimeMillis();
-
-
-            while (receiveBuffer.position() == 0) {
-                if (System.currentTimeMillis() - startTime > 3000) {
-                    System.out.println("Server unavailable.");
-                    Exit.exit();
-                }
-                client.read(receiveBuffer);
-            }
-
-            receiveBuffer.flip();
-            String response = new String(receiveBuffer.array(), 0,
-                    receiveBuffer.limit(), StandardCharsets.UTF_8);
-            DistributionOfTheOutputStream.printFromServer(response);
+            Server.interaction(client, request);
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
@@ -121,7 +87,7 @@ public class SavingAnEmergencyStop {
      * @return true if the emergency stop file exists, false otherwise
      */
     public static boolean checkIfFile() {
-        File file = new File(emergencyFile);
+        File file = new File(OutputFileSettings.getEmergencyFilePath());
 
         return file.exists();
     }

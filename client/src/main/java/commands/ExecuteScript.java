@@ -1,5 +1,6 @@
 package commands;
 
+import io.Server;
 import storage.Logging;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
@@ -8,6 +9,10 @@ import exceptions.InfiniteRecursion;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
 import storage.RequestPair;
+
+import java.net.InetSocketAddress;
+import java.nio.channels.DatagramChannel;
+import java.util.ArrayList;
 
 /**
  * Command that executes a script from a specified file.
@@ -24,23 +29,23 @@ public class ExecuteScript implements Helpable, Command {
      * @param fileName The name of the script file to execute.
      */
     public static void executeScript(String fileName) {
-        executeScriptMode = true;
-        DistributionOfTheOutputStream.printlnToFile("Starting script execution: " + fileName);
-        try {
-            if (fileName == null || fileName.isEmpty()) {
-                throw new IncorrectValue("File name cannot be empty.");
+        try (DatagramChannel client = DatagramChannel.open()) {
+            client.configureBlocking(false);
+            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
+
+            Server.interaction(client, new RequestPair<>(Commands.EXECUTE_SCRIPT, null));
+
+            ArrayList<RequestPair<?>> requests = CommandsHandler.inputFromFile(fileName);
+
+            for (RequestPair<?> request : requests) {
+                if (request != null)
+                    Server.interaction(client, request);
             }
-        } catch (IncorrectValue e) {
-            DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
-        } finally {
-            DistributionOfTheOutputStream.printlnToFile("");
-            executeScriptMode = false;
-            DistributionOfTheOutputStream.println("Finished script execution from file: " + fileName);
         }
     }
-    //TODO
+
     /**
      * Returns the current state of script execution.
      *
@@ -61,7 +66,8 @@ public class ExecuteScript implements Helpable, Command {
 
     @Override
     public RequestPair<?> execute(String arg, String inputMode) {
-        return new RequestPair<>(Commands.EXECUTE_SCRIPT, arg);
+        executeScript(arg);
+        return new RequestPair<>(Commands.EXECUTE_SCRIPT, null);
     }
 
     @Override

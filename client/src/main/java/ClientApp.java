@@ -2,17 +2,13 @@ import commands.Exit;
 import exceptions.RemoveOfTheNextSymbol;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
-import io.ServerSetting;
+import io.Server;
 import storage.Logging;
 import storage.RequestPair;
 import storage.SavingAnEmergencyStop;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class ClientApp {
@@ -25,41 +21,15 @@ public class ClientApp {
     public static void runCommandLoop() {
         try (DatagramChannel client = DatagramChannel.open()) {
             client.configureBlocking(false);
-            client.connect(new InetSocketAddress(ServerSetting.getServerHost(), ServerSetting.getServerPort()));
+            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
             while (Exit.running) {
                 System.out.print("Enter the command: ");
 
                 RequestPair<?> request = CommandsHandler.input();
 
-                // to bite
-                ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-                ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
-                objectOut.writeObject(request);
-                objectOut.flush();
-                byte[] bytes = byteOut.toByteArray();
+                Server.interaction(client, request);
 
-                // send
-                ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                client.write(buffer);
-
-                // take response
-                ByteBuffer receiveBuffer = ByteBuffer.allocate(4096);
-                long startTime = System.currentTimeMillis();
-
-
-                while (receiveBuffer.position() == 0) {
-                    if (System.currentTimeMillis() - startTime > 3000) {
-                        System.out.println("Server unavailable.");
-                        Exit.exit();
-                    }
-                    client.read(receiveBuffer);
-                }
-
-                receiveBuffer.flip();
-                String response = new String(receiveBuffer.array(), 0,
-                        receiveBuffer.limit(), StandardCharsets.UTF_8);
-                DistributionOfTheOutputStream.printFromServer(response);
             }
         } catch (PortUnreachableException e) {
             DistributionOfTheOutputStream.println("Problem to connect to the server.");

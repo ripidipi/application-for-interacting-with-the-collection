@@ -1,10 +1,5 @@
 package collection;
 
-import exceptions.EmptyLine;
-import exceptions.RemoveOfTheNextSymbol;
-import io.DistributionOfTheOutputStream;
-import io.PrimitiveDataInput;
-
 import java.io.Serializable;
 import java.util.Optional;
 
@@ -34,7 +29,9 @@ public record Coordinates(Long x, Float y) implements Serializable {
      * @return string representation of the y coordinate or an empty space if null.
      */
     public String yToString() {
-        return (Optional.ofNullable(y).orElse(Float.valueOf(" "))).toString();
+        return Optional.ofNullable(y)
+                .map(Object::toString)
+                .orElse(" ");
     }
 
     /**
@@ -44,7 +41,9 @@ public record Coordinates(Long x, Float y) implements Serializable {
      * @return string representation of the x coordinate or an empty space if null.
      */
     public String xToString() {
-        return (Optional.ofNullable(x).orElse(Long.valueOf(" "))).toString();
+        return Optional.ofNullable(x)
+                .map(Object::toString)
+                .orElse(" ");
     }
 
 }

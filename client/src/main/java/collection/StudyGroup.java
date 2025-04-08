@@ -212,4 +212,20 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
      */
     public Person getGroupAdmin() { return groupAdmin; }
 
+    /**
+     * Formats a StudyGroup object into a CSV string representation.
+     * This string is formatted to match the required CSV structure for study group details.
+     *
+     * @param studyGroup the study group to format
+     * @return the formatted CSV string of the study group
+     */
+    public static String formatStudyGroupToCSV(StudyGroup studyGroup) {
+        return studyGroup.getId().toString() + "," + studyGroup.getName() + "," +
+                studyGroup.getCoordinates().xToString() + "," +
+                studyGroup.getCoordinates().yToString() +  "," +
+                studyGroup.getStudentCount().toString() + "," + studyGroup.getFormOfEducation().toString() + "," +
+                studyGroup.getSemester().toString() + "," + studyGroup.getGroupAdmin().name() + "," +
+                studyGroup.getGroupAdmin().getBirthdayString() + "," + studyGroup.getGroupAdmin().heightToString() + "," +
+                studyGroup.getGroupAdmin().passportID() + '\n';
+    }
 }

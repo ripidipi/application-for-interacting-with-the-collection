@@ -1,16 +1,8 @@
 package commands;
 
-import storage.Logging;
-import collection.Collection;
-import collection.StudyGroup;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
-import io.DistributionOfTheOutputStream;
 import storage.RequestPair;
-
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.TreeSet;
 
 /**
  * Command that removes a study group by its ID.
@@ -20,7 +12,7 @@ public class RemoveById implements Helpable, Command {
 
     @Override
     public RequestPair<?> execute(String arg, String inputMode) {
-        return new RequestPair<>(Commands.REMOVE_BY_ID, Command.validateId(arg));
+        return new RequestPair<>(Commands.REMOVE_BY_ID, arg);
     }
 
     @Override

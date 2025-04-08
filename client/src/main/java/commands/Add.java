@@ -2,7 +2,6 @@ package commands;
 
 import collection.fabrics.StudyGroupFabric;
 import storage.Logging;
-import collection.Collection;
 import collection.StudyGroup;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
@@ -27,7 +26,7 @@ public class Add implements Helpable, Command {
         try {
             String[] inputSplit = arg.split(",");
             if (inputMode.equalsIgnoreCase("F") &&
-                    Collection.formatStudyGroupToCSV(StudyGroupFabric.getEmptyStudyGroup()).split(",").length
+                    StudyGroup.formatStudyGroupToCSV(StudyGroupFabric.getEmptyStudyGroup()).split(",").length
                             != inputSplit.length) {
                 throw new InsufficientNumberOfArguments("Add");
             }

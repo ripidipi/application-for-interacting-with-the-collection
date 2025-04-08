@@ -24,4 +24,12 @@ public interface DistributionOfTheOutputStream {
                 "##F#" : "##C#") + message );
     }
 
+    static void printlnC(String message) {
+        PreparingOfOutputStream.addToOutMassage( "##C#" + message + "\n");
+    }
+
+    static void printlnF(String message) {
+        PreparingOfOutputStream.addToOutMassage( "##F#" + message + "\n");
+    }
+
 }

@@ -1,20 +1,14 @@
 package io;
 
 import collection.StudyGroup;
-import commands.Add;
 import commands.Commands;
-import commands.Exit;
 import exceptions.ConnectionToFileFailed;
-import exceptions.IncorrectCommand;
-import exceptions.RemoveOfTheNextSymbol;
 import storage.Logging;
 import storage.RequestPair;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.Scanner;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -26,47 +20,6 @@ public class CommandsHandler {
     public static void execute(RequestPair<?> request, boolean muteMode) {
         Commands command = request.command();
         command.execute(request.object(), muteMode);
-    }
-
-    /**
-     * Checks if a given string can be converted to a valid {@link Commands} enum value.
-     *
-     * @param s the string to check
-     * @return true if the string corresponds to a valid command, false otherwise
-     */
-    private static boolean convertToEnum(String s) {
-        try {
-            if (s == null || s.trim().isEmpty()) {
-                throw new IllegalArgumentException();
-            }
-            Enum.valueOf(Commands.class, s.toUpperCase());
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Processes and executes a command if it is valid.
-     * If the command requires arguments, they are passed and executed accordingly.
-     *
-     * @param inputSplit an array containing the command and its arguments
-     * @param inputMode  the mode of input (e.g., console or file)
-     * @return null
-     */
-    public static Void isCommand(String[] inputSplit, String inputMode) {
-        try {
-            if (inputSplit.length != 0 && convertToEnum(inputSplit[0])) {
-                Commands command = Enum.valueOf(Commands.class, inputSplit[0].toUpperCase());
-            } else {
-                throw new IncorrectCommand(inputSplit[0]);
-            }
-        } catch (IncorrectCommand e) {
-            DistributionOfTheOutputStream.println(e.getMessage());
-        } catch (Exception e) {
-            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
-        }
-        return null;
     }
 
     /**
