@@ -34,6 +34,7 @@ public class ServerApp {
             while (true) {
                 ClientRequest requestWrapper = Server.readFromClient(server, buffer);
                 if (requestWrapper == null) {
+                    Thread.sleep(3);
                     continue;
                 }
 

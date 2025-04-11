@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Server {
 
-    private static final String SERVER_HOST = "helios.cs.ifmo.ru";
+    private static final String SERVER_HOST = "127.0.0.1"; // helios.cs.ifmo.ru
     private static final int SERVER_PORT = 9911;
 
     public static String getServerHost() {
@@ -23,19 +23,17 @@ public class Server {
         return SERVER_PORT;
     }
 
-    public static String interaction(DatagramChannel client, RequestPair<?> request) throws IOException {
-        // to bite
+    public static String interaction(DatagramChannel client, RequestPair<?> request) throws IOException, InterruptedException {
+
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
         objectOut.writeObject(request);
         objectOut.flush();
         byte[] bytes = byteOut.toByteArray();
 
-        // send
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         client.write(buffer);
 
-        // take response
         ByteBuffer receiveBuffer = ByteBuffer.allocate(4096);
         long startTime = System.currentTimeMillis();
 
@@ -46,6 +44,7 @@ public class Server {
                 Exit.exit();
                 return null;
             }
+            Thread.sleep(3);
             client.read(receiveBuffer);
         }
 

@@ -1,6 +1,7 @@
 package io;
 
 import commands.ExecuteScript;
+import storage.Logging;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -92,19 +93,27 @@ public interface DistributionOfTheOutputStream {
     }
 
     static void printFromServer(String response) {
-        List<String> messageToConsole = Pattern.compile("##")
-                .splitAsStream(response)
-                .filter(line -> line.startsWith("C#"))
-                .collect(Collectors.toList());
-        List<String> messageToFile = Pattern.compile("##")
-                .splitAsStream(response)
-                .filter(line -> line.startsWith("F#"))
-                .collect(Collectors.toList());
-        for (String message : messageToConsole) {
-            print(message.replace("C#", ""));
-        }
-        for (String message : messageToFile) {
-            printToFile(message.replace("F#", ""));
+        try {
+            if (response == null) {
+                println("Problem with server response");
+                throw new NullPointerException("response is null");
+            }
+            List<String> messageToConsole = Pattern.compile("##")
+                    .splitAsStream(response)
+                    .filter(line -> line.startsWith("C#"))
+                    .collect(Collectors.toList());
+            List<String> messageToFile = Pattern.compile("##")
+                    .splitAsStream(response)
+                    .filter(line -> line.startsWith("F#"))
+                    .collect(Collectors.toList());
+            for (String message : messageToConsole) {
+                print(message.replace("C#", ""));
+            }
+            for (String message : messageToFile) {
+                printToFile(message.replace("F#", ""));
+            }
+        } catch (Exception e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
     }
 }

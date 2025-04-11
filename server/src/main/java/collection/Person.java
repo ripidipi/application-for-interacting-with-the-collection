@@ -43,7 +43,9 @@ public record Person(String name, LocalDateTime birthday, Double height, String 
      * @return the height as a string or an empty string if null.
      */
     public String heightToString() {
-        return (Optional.ofNullable(height).orElse(Double.valueOf(" "))).toString();
+        return Optional.ofNullable(height)
+                .map(Object::toString)
+                .orElse(" ");
     }
 
     public DateTimeFormatter getBirthdayFormatter() {
