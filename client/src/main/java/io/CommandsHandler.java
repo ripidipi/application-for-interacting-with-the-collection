@@ -65,7 +65,7 @@ public class CommandsHandler {
             } else {
                 throw new IncorrectCommand(inputSplit[0]);
             }
-        } catch (IncorrectCommand e) {
+        } catch (RuntimeException e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
