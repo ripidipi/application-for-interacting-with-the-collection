@@ -86,10 +86,20 @@ public class SavingAnEmergencyStop {
      *
      * @return true if the emergency stop file exists, false otherwise
      */
-    public static boolean checkIfFile() {
+    public static boolean checkIfPreviousSession() {
         File file = new File(OutputFileSettings.getEmergencyFilePath());
-
-        return file.exists();
+        if (!file.exists()) return false;
+        try (Scanner scanner = new Scanner(file)) {
+            String line = scanner.nextLine();
+            if (line.endsWith(",")) {
+                line = line.substring(0, line.length() - 1);
+            }
+            String[] values = line.split(",");
+            if (values.length > 0) {return true;}
+        } catch (Exception e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        }
+        return false;
     }
 
 }

@@ -42,7 +42,7 @@ public class ClientApp {
     }
 
     public static void checkPreviousSession() {
-        if (SavingAnEmergencyStop.checkIfFile()) {
+        if (SavingAnEmergencyStop.checkIfPreviousSession()) {
             runPreviousSession();
         }
     }
