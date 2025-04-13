@@ -1,4 +1,4 @@
-# Console-application-divided-into-server-and-client-parts
+# Application-for-interacting-with-the-сollection
 
 ## Описание
 
