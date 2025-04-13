@@ -1,9 +1,7 @@
 package collection.fabrics;
 
 import collection.Person;
-import exceptions.EmptyLine;
-import exceptions.RemoveOfTheNextSymbol;
-import exceptions.ZeroValue;
+import exceptions.*;
 import io.DistributionOfTheOutputStream;
 import io.PrimitiveDataInput;
 
@@ -130,14 +128,17 @@ public class PersonFabric {
      * @return a {@link Person} object created based on the input and mode.
      * @throws RemoveOfTheNextSymbol if an unexpected or invalid symbol is found in the input.
      */
-    public static Person getPersonFrom(String input, String inputMode) throws RemoveOfTheNextSymbol {
+    public static Person getPersonFrom(String input, String inputMode) throws RemoveOfTheNextSymbol,
+            InsufficientNumberOfArguments, IncorrectValue {
         String[] inputSplit = input.split(",");
+        Person person;
         if (inputMode.equalsIgnoreCase("M")) {
-            return PersonFabric.inputMixed(inputSplit);
+            person = PersonFabric.inputMixed(inputSplit);
         } else if (inputMode.equalsIgnoreCase("F")) {
-            return PersonFabric.inputFromFile(inputSplit[0], inputSplit[1], inputSplit[2], inputSplit[3]);
-        }
-        return PersonFabric.input();
+            person = PersonFabric.inputFromFile(inputSplit[0], inputSplit[1], inputSplit[2], inputSplit[3]);
+        } else { person = PersonFabric.input();}
+        if (!isRightFill(person)) { throw new IncorrectValue(input);}
+        return person;
     }
 
 }

@@ -171,21 +171,28 @@ public class StudyGroupFabric {
      * @throws RemoveOfTheNextSymbol If an error occurs while processing the input.
      */
     public static StudyGroup getStudyGroupFrom(String inputMode, String[] input, boolean notAdd, boolean isId)
-            throws RemoveOfTheNextSymbol {
+            throws RemoveOfTheNextSymbol, IncorrectValue {
+        StudyGroup studyGroup;
         if (inputMode.equalsIgnoreCase("M")) {
-            return StudyGroupFabric.inputMixed(input, notAdd, isId);
+            studyGroup = StudyGroupFabric.inputMixed(input, notAdd, isId);
         } else if (inputMode.equalsIgnoreCase("F")) {
-            return StudyGroupFabric.inputFromFile(input, notAdd);
+            studyGroup = StudyGroupFabric.inputFromFile(input, notAdd);
+        } else {
+            if (input.length >= 1 && !input[0].isEmpty()) {
+                studyGroup = StudyGroupFabric.input(input[0]);
+            } else {
+                studyGroup =StudyGroupFabric.input();
+            }
         }
-        if (input.length >= 1 && !input[0].isEmpty()) {
-            return StudyGroupFabric.input(input[0]);
+        if (!isRightFill(studyGroup)) {
+            throw new IncorrectValue(String.join(",", input));
         }
-        return StudyGroupFabric.input();
+        return studyGroup;
     }
 
 
     public static StudyGroup parseStudyGroup(String arg, String inputMode, String commandName, boolean isId)
-            throws InsufficientNumberOfArguments, RemoveOfTheNextSymbol, IncorrectConstant {
+            throws InsufficientNumberOfArguments, RemoveOfTheNextSymbol, IncorrectValue {
         StudyGroup studyGroup;
         if (inputMode.equalsIgnoreCase("C")) {
             Integer id;

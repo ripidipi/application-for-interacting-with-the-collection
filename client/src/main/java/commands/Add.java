@@ -1,6 +1,7 @@
 package commands;
 
 import collection.fabrics.StudyGroupFabric;
+import exceptions.IncorrectValue;
 import storage.Logging;
 import collection.StudyGroup;
 import commands.interfaces.Command;
@@ -32,7 +33,7 @@ public class Add implements Helpable, Command {
             }
             StudyGroup studyGroup = StudyGroupFabric.getStudyGroupFrom(inputMode, inputSplit, false, false);
             return new RequestPair<>(Commands.ADD, studyGroup);
-        } catch (InsufficientNumberOfArguments e) {
+        } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());

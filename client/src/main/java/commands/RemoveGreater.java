@@ -1,6 +1,7 @@
 package commands;
 
 import collection.fabrics.StudyGroupFabric;
+import exceptions.IncorrectValue;
 import storage.Logging;
 import collection.StudyGroup;
 import commands.interfaces.Command;
@@ -22,7 +23,7 @@ public class RemoveGreater implements Helpable, Command {
         try {
             StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "RemoveGreater", false);
             return new RequestPair<>(Commands.REMOVE_GREATER, studyGroup);
-        } catch (InsufficientNumberOfArguments e) {
+        } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());

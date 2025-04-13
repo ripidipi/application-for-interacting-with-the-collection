@@ -1,6 +1,7 @@
 package commands;
 
 import collection.fabrics.PersonFabric;
+import exceptions.IncorrectValue;
 import storage.Logging;
 import collection.Person;
 import commands.interfaces.Command;
@@ -26,7 +27,7 @@ public class CountByGroupAdmin implements Helpable, Command {
             }
             Person person = PersonFabric.getPersonFrom(arg, inputMode);
             return new RequestPair<>(Commands.COUNT_BY_GROUP_ADMIN, person);
-        } catch (InsufficientNumberOfArguments e) {
+        } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());

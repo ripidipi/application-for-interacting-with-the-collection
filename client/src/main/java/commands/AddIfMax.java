@@ -1,6 +1,7 @@
 package commands;
 
 import collection.fabrics.StudyGroupFabric;
+import exceptions.IncorrectValue;
 import storage.Logging;
 import collection.StudyGroup;
 import commands.interfaces.Command;
@@ -26,7 +27,7 @@ public class AddIfMax implements Helpable, Command {
         try {
             StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "AddIfMax", false);
             return new RequestPair<>(Commands.ADD_IF_MAX, studyGroup);
-        } catch (InsufficientNumberOfArguments e) {
+        } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());

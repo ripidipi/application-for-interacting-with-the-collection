@@ -8,9 +8,17 @@ add,53928,goossdTut,1703,17.03,1298,EVENING_CLASSES,FOURTH,Andre,12/13/1212,180.
 GROUP_COUNTING_BY_ID
 info
 AdD_if_Max,9999999,AAAAAAAfbooooo, , ,12323,EVENING_CLASSES,EIGHTH,Fackis,28/02/1001,200.0,ToBeOrNotToBe
-
 info
 COUNT_BY_GROUP_ADMIN,Andre,12/12/1212,180.0,GOOOLLLL777
 info
-
+Group_count_By_id
+help
+REmove_any_by_group_admin,Andre,12/13/1212,180.0,GOOOLLLL777
+info
+Remove_greater,53928,goossdTut,1703,17.03,1298,EVENING_CLASSES,FOURTH,Andre,12/13/1212,180.0,GOOOLLLL777
+show
+update,53928,aaaaaaaaaaaaaaaaa,1703,17.03,1298,EVENING_CLASSES,FOURTH,Andre,12/13/1212,180.0,GOOOLLLL777
+show
+clear
+info
 execute_script,Commands.csv
