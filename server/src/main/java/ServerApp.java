@@ -15,6 +15,8 @@ import java.io.ObjectInputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerApp {
 
@@ -25,26 +27,45 @@ public class ServerApp {
 
     private static void listenLoop() {
         try (DatagramChannel server = DatagramChannel.open()) {
+            ExecutorService connectionPool = Executors.newFixedThreadPool(Server.getTreadsQuantity());
             server.configureBlocking(false);
             server.bind(new InetSocketAddress(Server.getServerPort()));
             System.out.println("Server waiting on port - " + Server.getServerPort());
 
-            ByteBuffer buffer = ByteBuffer.allocate(4096);
-
+            connectionPool.submit(() -> {
             while (true) {
-                ClientRequest requestWrapper = Server.readFromClient(server, buffer);
-                if (requestWrapper == null) {
-                    Thread.sleep(3);
-                    continue;
-                }
+                    try {
+                        ByteBuffer buffer = ByteBuffer.allocate(4096);
+                        ClientRequest requestWrapper = Server.readFromClient(server, buffer);
 
-                RequestPair<?> request = (RequestPair<?>) requestWrapper.input.readObject();
+                        if (requestWrapper == null) {
+                            Thread.sleep(3);
+                            continue;
+                        }
+                        ObjectInputStream input = requestWrapper.input;
+                        RequestPair<?> request = (RequestPair<?>) input.readObject();
 
-                PreparingOfOutputStream.clear();
-                CommandsHandler.execute(request, false);
+                        new Thread(() -> {
+                            PreparingOfOutputStream.clear();
+                            CommandsHandler.execute(request, false);
 
-                Server.sendResponse(server, requestWrapper.address);
+                            new Thread(() -> {
+                                try {
+                                    Server.sendResponse(server, requestWrapper.address);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }).start();
+
+                        }).start();
+
+                    } catch (Exception e) {
+                        Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+                    }
+
+                Thread.sleep(3);
             }
+            });
 
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
@@ -52,6 +73,7 @@ public class ServerApp {
             System.out.println("Server closed");
         }
     }
+
 
 
     private static void initializeApplication() {

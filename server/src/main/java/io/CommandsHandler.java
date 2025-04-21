@@ -9,6 +9,7 @@ import storage.RequestPair;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 /**
@@ -17,9 +18,13 @@ import java.util.function.Function;
  */
 public class CommandsHandler {
 
+    private static final ReentrantLock lock = new ReentrantLock();
+
     public static void execute(RequestPair<?> request, boolean muteMode) {
+        lock.lock();
         Commands command = request.command();
         command.execute(request.object(), muteMode);
+        lock.unlock();
     }
 
     /**

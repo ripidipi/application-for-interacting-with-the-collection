@@ -14,7 +14,8 @@ import java.nio.charset.StandardCharsets;
 public class Server {
 
     private static final int SERVER_PORT = 9911;
-    private static final String COLLECTION_PATH = System.getenv("CSV_FILE_NAME");;
+    private static final String COLLECTION_PATH = System.getenv("CSV_FILE_NAME");
+    private static final int TREADS_QUANTITY = 5;
 
     public static int getServerPort() {
         return SERVER_PORT;
@@ -22,6 +23,10 @@ public class Server {
 
     public static String getCollectionPath() {
         return COLLECTION_PATH;
+    }
+
+    public static int getTreadsQuantity() {
+        return TREADS_QUANTITY;
     }
 
     public static ClientRequest readFromClient(DatagramChannel server, ByteBuffer buffer) throws IOException {

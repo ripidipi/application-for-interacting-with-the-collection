@@ -1,5 +1,6 @@
 import commands.Exit;
 import exceptions.RemoveOfTheNextSymbol;
+import io.Authentication;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
 import io.Server;
@@ -24,7 +25,7 @@ public class ClientApp {
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            while (Exit.running) {
+            while (Exit.running & Authentication.getInstance().isAuthenticated()) {
                 System.out.print("Enter the command: ");
 
                 RequestPair<?> request = CommandsHandler.input();
@@ -42,7 +43,7 @@ public class ClientApp {
     }
 
     public static void checkPreviousSession() {
-        if (SavingAnEmergencyStop.checkIfPreviousSession()) {
+        if (SavingAnEmergencyStop.checkIfPreviousSession() & Authentication.getInstance().isAuthenticated()) {
             runPreviousSession();
         }
     }
