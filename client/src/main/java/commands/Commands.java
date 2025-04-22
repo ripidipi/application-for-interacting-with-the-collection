@@ -31,6 +31,8 @@ public enum Commands {
 
     CHECK_IS_WITH_ID(new Show()),
 
+    CHECK_AUTHENTICATION(new Info()),
+
     /** execute_script file_name : read and execute a script from the specified file.
      * The script contains commands in the same format as they are entered by the user in interactive mode.
      */

@@ -24,6 +24,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     private final FormOfEducation formOfEducation;
     private final Semester semester;
     private final Person groupAdmin;
+    private final String owner;
 
     /**
      * Constructs a StudyGroup with a generated unique ID.
@@ -37,8 +38,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
      */
     public StudyGroup(String name, Coordinates coordinates,
                       Integer studentCount, FormOfEducation formOfEducation,
-                      Semester semester, Person groupAdmin) {
-
+                      Semester semester, Person groupAdmin, String owner) {
         this.id = generateId();
         IDs.put(generateId(), true);
         this.name = name;
@@ -48,6 +48,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
         this.formOfEducation = formOfEducation;
         this.semester = semester;
         this.groupAdmin = groupAdmin;
+        this.owner = owner;
     }
 
     /**
@@ -63,7 +64,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
      */
     public StudyGroup(Integer id, String name, Coordinates coordinates, Integer studentCount,
                       FormOfEducation formOfEducation,
-                      Semester semester, Person groupAdmin) {
+                      Semester semester, Person groupAdmin, String owner) {
         this.id = id;
         if (id != null)
             IDs.put(id, true);
@@ -74,6 +75,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
         this.formOfEducation = formOfEducation;
         this.semester = semester;
         this.groupAdmin = groupAdmin;
+        this.owner = owner;
     }
 
     /**
@@ -124,12 +126,12 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
         return "StudyGroup {" +
                 "id: " + id +
                 "\tname: " + name +
-                "\n" + coordinates +
+                "\n" + coordinates.toString() +
                 "\tcreation date: " + getCreationDateString() +
                 "\tstudent count: " + studentCount +
                 "\tform of education: " + formOfEducation +
                 "\tsemester: " + semester +
-                "\n" + groupAdmin + "}\n";
+                "\n" + groupAdmin.toString() + "}\n";
     }
 
     /**
@@ -154,6 +156,8 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
      * @return The name of the StudyGroup.
      */
     public String getName() { return name; }
+
+    public String getOwner() { return owner; }
 
     /**
      * Gets the coordinates of the StudyGroup.

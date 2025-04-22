@@ -4,10 +4,7 @@ import io.ClientRequest;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
 import io.PreparingOfOutputStream;
-import storage.FillCollectionFromFile;
-import storage.Logging;
-import storage.RequestPair;
-import storage.Server;
+import storage.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,35 +12,40 @@ import java.io.ObjectInputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerApp {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
+        Connection connection = DBManager.getConnection();
+        System.out.println("Connected: " + !connection.isClosed());
         initializeApplication();
         listenLoop();
     }
 
     private static void listenLoop() {
         try (DatagramChannel server = DatagramChannel.open()) {
-            ExecutorService connectionPool = Executors.newFixedThreadPool(Server.getTreadsQuantity());
+            server.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             server.configureBlocking(false);
             server.bind(new InetSocketAddress(Server.getServerPort()));
-            System.out.println("Server waiting on port - " + Server.getServerPort());
+            System.out.println("Server waiting on port " + Server.getServerPort());
 
-            connectionPool.submit(() -> {
+            ExecutorService connectionPool = Executors.newFixedThreadPool(Server.getTreadsQuantity());
+            ByteBuffer buffer = ByteBuffer.allocate(4096);
+
             while (true) {
-                    try {
-                        ByteBuffer buffer = ByteBuffer.allocate(4096);
-                        ClientRequest requestWrapper = Server.readFromClient(server, buffer);
+                ClientRequest req = Server.readFromClient(server, buffer);
+                if (req == null) {
+                    Thread.sleep(3);
+                    continue;
+                }
 
-                        if (requestWrapper == null) {
-                            Thread.sleep(3);
-                            continue;
-                        }
-                        ObjectInputStream input = requestWrapper.input;
-                        RequestPair<?> request = (RequestPair<?>) input.readObject();
+                connectionPool.submit(() -> {
+                    try {
+                        RequestPair<?> request = (RequestPair<?>) req.input.readObject();
 
                         new Thread(() -> {
                             PreparingOfOutputStream.clear();
@@ -51,9 +53,9 @@ public class ServerApp {
 
                             new Thread(() -> {
                                 try {
-                                    Server.sendResponse(server, requestWrapper.address);
+                                    Server.sendResponse(server, req.address);
                                 } catch (IOException e) {
-                                    throw new RuntimeException(e);
+                                    Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                                 }
                             }).start();
 
@@ -62,17 +64,15 @@ public class ServerApp {
                     } catch (Exception e) {
                         Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                     }
-
-                Thread.sleep(3);
+                });
             }
-            });
-
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         } finally {
             System.out.println("Server closed");
         }
     }
+
 
 
 

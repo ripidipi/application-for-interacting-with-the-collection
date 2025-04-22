@@ -17,7 +17,8 @@ public class StudyGroupFabric {
         return new StudyGroup(-1, " ", new Coordinates(-1L, -1F), -1,
                 FormOfEducation.FULL_TIME_EDUCATION, Semester.EIGHTH,
                 new Person(" ", LocalDateTime.parse("11/11/1111 11:11:11",
-                        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")), -1D, " "));
+                        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")), -1D, " "),
+                Authentication.getInstance().getUsername());
     }
 
     /**
@@ -53,9 +54,10 @@ public class StudyGroupFabric {
         Person groupAdmin = PersonFabric.input();
         if (id != null) {
             return new StudyGroup(id, name, coordinates, studentCount,
-                    formOfEducation, semester, groupAdmin);
+                    formOfEducation, semester, groupAdmin, Authentication.getInstance().getUsername());
         }
-        return new StudyGroup(name, coordinates, studentCount, formOfEducation, semester, groupAdmin);
+        return new StudyGroup(name, coordinates, studentCount, formOfEducation, semester, groupAdmin,
+                Authentication.getInstance().getUsername());
     }
 
     /**
@@ -151,7 +153,7 @@ public class StudyGroupFabric {
         }
 
         StudyGroup studyGroup = new StudyGroup(id, name, coordinates, studentCount,
-                formOfEducation, semester, groupAdmin);
+                formOfEducation, semester, groupAdmin, Authentication.getInstance().getUsername());
 
         if (!isRightFill(studyGroup)) {
             throw new CommandDataFromTheFileIsIncorrect(String.join(",", inputSplit));

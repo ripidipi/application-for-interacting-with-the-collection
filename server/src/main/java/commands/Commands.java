@@ -54,7 +54,9 @@ public enum Commands {
     /** count_by_group_admin groupAdmin : display the number of elements whose groupAdmin field value matches the given one */
     COUNT_BY_GROUP_ADMIN(new CountByGroupAdmin()),
 
-    CHECK_IS_WITH_ID(new CheckIsWithId());
+    CHECK_IS_WITH_ID(new CheckIsWithId()),
+
+    CHECK_AUTHENTICATION(new CheckAuthentication());
 
     private final Command<?> command;
 
