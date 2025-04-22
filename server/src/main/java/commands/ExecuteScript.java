@@ -1,5 +1,6 @@
 package commands;
 
+import storage.Authentication;
 import storage.Logging;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
@@ -32,7 +33,7 @@ public class ExecuteScript implements Helpable, Command<Void> {
     }
 
     @Override
-    public void execute(Void arg, boolean muteMode) {
+    public void execute(Void arg, boolean muteMode, Authentication auth) {
         executeScript();
     }
 

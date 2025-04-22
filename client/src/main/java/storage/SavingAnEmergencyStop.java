@@ -69,7 +69,7 @@ public class SavingAnEmergencyStop {
         }
     }
 
-    public static void sentRequestToServer(RequestPair<?> request) {
+    public static void sentRequestToServer(Request<?> request) {
         try (DatagramChannel client = DatagramChannel.open()) {
             client.configureBlocking(false);
             client.connect(

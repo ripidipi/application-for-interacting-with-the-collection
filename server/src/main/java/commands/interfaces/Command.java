@@ -3,6 +3,7 @@ package commands.interfaces;
 import collection.Collection;
 import collection.StudyGroup;
 import io.DistributionOfTheOutputStream;
+import storage.Authentication;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -14,7 +15,7 @@ public interface Command <T> {
     /**
      * Method for all commands. Perform main functional
      */
-    void execute(T input, boolean muteMode);
+    void execute(T input, boolean muteMode, Authentication auth);
 
 
     /**

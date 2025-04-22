@@ -1,7 +1,7 @@
 package io;
 
 import commands.Exit;
-import storage.RequestPair;
+import storage.Request;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 public class Server {
 
     private static final String SERVER_HOST = "127.0.0.1"; // helios.cs.ifmo.ru
-    private static final int SERVER_PORT = 9911;
+    private static final int SERVER_PORT = 9988;
 
     public static String getServerHost() {
         return SERVER_HOST;
@@ -23,7 +23,7 @@ public class Server {
         return SERVER_PORT;
     }
 
-    public static String interaction(DatagramChannel client, RequestPair<?> request) throws IOException, InterruptedException {
+    public static String interaction(DatagramChannel client, Request<?> request) throws IOException, InterruptedException {
 
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);

@@ -4,7 +4,7 @@ import exceptions.ConnectionToFileFailed;
 import exceptions.IncorrectCommand;
 import exceptions.RemoveOfTheNextSymbol;
 import storage.Logging;
-import storage.RequestPair;
+import storage.Request;
 import storage.SavingAnEmergencyStop;
 import commands.Commands;
 import commands.Exit;
@@ -13,10 +13,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
-import java.util.function.BiFunction;
 
 /**
  * This class handles command input either from the console or from a file.
@@ -49,12 +47,12 @@ public class CommandsHandler {
      * @param inputSplit an array containing the command and its arguments
      * @param inputMode  the mode of input (e.g., console or file)
      */
-    public static RequestPair<?> isCommand(String[] inputSplit, String inputMode) {
+    public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
             if (inputSplit.length != 0 && convertToEnum(inputSplit[0])) {
                 Commands command = Enum.valueOf(Commands.class, inputSplit[0].toUpperCase());
                 SavingAnEmergencyStop.addStringToFile(command.name());
-                RequestPair<?> request;
+                Request<?> request;
                 if (inputSplit.length >= 2) {
                     request = command.execute(String.join(",", Arrays.copyOfRange(inputSplit, 1, inputSplit.length)), inputMode);
                 } else {
@@ -77,7 +75,7 @@ public class CommandsHandler {
      * Reads and processes command input from the console.
      * If a valid command is entered, it is executed accordingly.
      */
-    public static RequestPair<?> input() {
+    public static Request<?> input() {
         try {
             Scanner scanner = new Scanner(System.in);
             if (!scanner.hasNextLine()) {
@@ -123,7 +121,7 @@ public class CommandsHandler {
 
                         String line = scanner.nextLine();
                         String[] values = line.split(",");
-                        RequestPair<?> request = isCommand(values, "F");
+                        Request<?> request = isCommand(values, "F");
                         if(request != null)
                             DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
                     } catch (Exception e) {

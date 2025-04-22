@@ -4,6 +4,7 @@ import collection.Collection;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import io.DistributionOfTheOutputStream;
+import storage.Authentication;
 
 /**
  * Command that provides information about the collection.
@@ -18,7 +19,7 @@ public class Info implements Helpable, Command<Void> {
     }
 
     @Override
-    public void execute(Void arg, boolean muteMode) {
+    public void execute(Void arg, boolean muteMode, Authentication auth) {
         info();
     }
 

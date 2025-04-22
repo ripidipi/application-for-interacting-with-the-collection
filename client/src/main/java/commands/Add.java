@@ -9,7 +9,7 @@ import commands.interfaces.Helpable;
 import exceptions.InsufficientNumberOfArguments;
 import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command for adding study groups to the collection from the console.
@@ -23,7 +23,7 @@ public class Add implements Helpable, Command {
      * @param inputMode the input mode (e.g., console or file)
      */
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         try {
             String[] inputSplit = arg.split(",");
             if (inputMode.equalsIgnoreCase("F") &&
@@ -32,7 +32,7 @@ public class Add implements Helpable, Command {
                 throw new InsufficientNumberOfArguments("Add");
             }
             StudyGroup studyGroup = StudyGroupFabric.getStudyGroupFrom(inputMode, inputSplit, false, false);
-            return new RequestPair<>(Commands.ADD, studyGroup);
+            return new Request<>(Commands.ADD, studyGroup);
         } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {

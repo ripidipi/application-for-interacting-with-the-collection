@@ -6,9 +6,7 @@ import io.DistributionOfTheOutputStream;
 import io.PreparingOfOutputStream;
 import storage.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -28,7 +26,6 @@ public class ServerApp {
 
     private static void listenLoop() {
         try (DatagramChannel server = DatagramChannel.open()) {
-            server.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             server.configureBlocking(false);
             server.bind(new InetSocketAddress(Server.getServerPort()));
             System.out.println("Server waiting on port " + Server.getServerPort());
@@ -45,7 +42,7 @@ public class ServerApp {
 
                 connectionPool.submit(() -> {
                     try {
-                        RequestPair<?> request = (RequestPair<?>) req.input.readObject();
+                        Request<?> request = (Request<?>) req.input.readObject();
 
                         new Thread(() -> {
                             PreparingOfOutputStream.clear();

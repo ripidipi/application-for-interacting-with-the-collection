@@ -1,5 +1,6 @@
 package commands;
 
+import storage.Authentication;
 import storage.Logging;
 import collection.Collection;
 import collection.StudyGroup;
@@ -10,12 +11,14 @@ import io.DistributionOfTheOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Command that groups study groups by ID and counts the number of elements in each group.
  */
 public class GroupCountingById implements Helpable, Command<Void> {
 
+    private static final ReentrantLock lock = new ReentrantLock();
     /**
      * Groups study groups by their ID and counts the number of elements in each group.
      * The groups are created based on the size of the collection, and each group
@@ -24,6 +27,7 @@ public class GroupCountingById implements Helpable, Command<Void> {
      */
     public static void groupCountingById() {
         try {
+            lock.lock();
             TreeSet<StudyGroup> studyGroups = Collection.getInstance().getCollection();
             int setSize = studyGroups.size();
             if (setSize == 0) {
@@ -54,11 +58,14 @@ public class GroupCountingById implements Helpable, Command<Void> {
             DistributionOfTheOutputStream.println("");
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        } finally {
+            lock.unlock();
         }
+
     }
 
     @Override
-    public void execute(Void arg, boolean muteMode) {
+    public void execute(Void arg, boolean muteMode, Authentication auth) {
         groupCountingById();
     }
 

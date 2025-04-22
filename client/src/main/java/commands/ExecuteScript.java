@@ -8,12 +8,11 @@ import exceptions.IncorrectValue;
 import exceptions.InfiniteRecursion;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 import storage.RunningFiles;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
-import java.util.ArrayList;
 
 /**
  * Command that executes a script from a specified file.
@@ -44,7 +43,7 @@ public class ExecuteScript implements Helpable, Command {
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, new RequestPair<>(Commands.EXECUTE_SCRIPT, null)));
+            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, new Request<>(Commands.EXECUTE_SCRIPT, null)));
 
             CommandsHandler.inputFromFile(fileName);
 
@@ -78,9 +77,9 @@ public class ExecuteScript implements Helpable, Command {
     }
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         executeScript(arg);
-        return new RequestPair<>(Commands.EXECUTE_SCRIPT, null);
+        return new Request<>(Commands.EXECUTE_SCRIPT, null);
     }
 
     @Override

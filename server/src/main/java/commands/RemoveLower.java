@@ -1,9 +1,12 @@
 package commands;
 
+import storage.Authentication;
 import storage.Logging;
 import collection.StudyGroup;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -13,12 +16,17 @@ import commands.interfaces.Helpable;
  */
 public class RemoveLower implements Helpable, Command<StudyGroup> {
 
+    private static final ReentrantLock lock = new ReentrantLock();
+
     @Override
-    public void execute(StudyGroup studyGroup, boolean muteMode) {
+    public void execute(StudyGroup studyGroup, boolean muteMode, Authentication auth) {
         try {
+            lock.lock();
             Command.remove(studyGroup, (sG1, sG2) -> sG1.compareTo(sG2) < 0);
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        } finally {
+            lock.unlock();
         }
     }
 

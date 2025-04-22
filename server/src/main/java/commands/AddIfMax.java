@@ -1,5 +1,7 @@
 package commands;
 
+import storage.Authentication;
+import storage.DBManager;
 import storage.Logging;
 import collection.Collection;
 import collection.StudyGroup;
@@ -9,11 +11,14 @@ import io.DistributionOfTheOutputStream;
 
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Command that adds a study group to the collection only if it is the largest from the console.
  */
 public class AddIfMax implements Helpable, Command<StudyGroup> {
+
+    private static final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Adds a new study group if it is the maximum in the collection.
@@ -22,7 +27,8 @@ public class AddIfMax implements Helpable, Command<StudyGroup> {
      */
     private static void addStudyGroupIfMax(StudyGroup studyGroup, boolean muteMode) {
         if (studyGroup != null && isMax(studyGroup)) {
-            Collection.getInstance().addElement(studyGroup);
+            DBManager.insertStudyGroup(studyGroup);
+            Collection.getInstance().reload();
             if (!muteMode) {
                 DistributionOfTheOutputStream.println("Study group added successfully.");
             }
@@ -47,11 +53,14 @@ public class AddIfMax implements Helpable, Command<StudyGroup> {
 
 
     @Override
-    public void execute(StudyGroup studyGroup, boolean muteMode) {
+    public void execute(StudyGroup studyGroup, boolean muteMode, Authentication auth) {
         try {
+            lock.lock();
             addStudyGroupIfMax(studyGroup, muteMode);
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        } finally {
+            lock.unlock();
         }
     }
 

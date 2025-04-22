@@ -9,7 +9,7 @@ import commands.interfaces.Helpable;
 import exceptions.InsufficientNumberOfArguments;
 import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that counts the number of study groups where a specified person is the admin from console.
@@ -17,7 +17,7 @@ import storage.RequestPair;
 public class CountByGroupAdmin implements Helpable, Command {
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         try {
             if (inputMode.equalsIgnoreCase("F")) {
                 String[] inputSplit = arg.split(",");
@@ -26,7 +26,7 @@ public class CountByGroupAdmin implements Helpable, Command {
                 }
             }
             Person person = PersonFabric.getPersonFrom(arg, inputMode);
-            return new RequestPair<>(Commands.COUNT_BY_GROUP_ADMIN, person);
+            return new Request<>(Commands.COUNT_BY_GROUP_ADMIN, person);
         } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {

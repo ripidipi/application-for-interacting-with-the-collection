@@ -2,7 +2,7 @@ package commands;
 
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that provides information about the collection.
@@ -10,8 +10,8 @@ import storage.RequestPair;
 public class Info implements Helpable, Command {
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
-        return new RequestPair<>(Commands.INFO, (Void)null);
+    public Request<?> execute(String arg, String inputMode) {
+        return new Request<>(Commands.INFO, (Void)null);
     }
 
     @Override

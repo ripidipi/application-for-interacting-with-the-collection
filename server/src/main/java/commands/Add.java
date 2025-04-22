@@ -1,5 +1,7 @@
 package commands;
 
+import storage.Authentication;
+import storage.DBManager;
 import storage.Logging;
 import collection.Collection;
 import collection.StudyGroup;
@@ -7,10 +9,15 @@ import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import io.DistributionOfTheOutputStream;
 
+import java.nio.channels.AsynchronousFileChannel;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Command for adding study groups to the collection from the console.
  */
 public class Add implements Helpable, Command<StudyGroup> {
+
+    private static final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Adds a new study group to the collection.
@@ -19,13 +26,16 @@ public class Add implements Helpable, Command<StudyGroup> {
      */
     private static void addStudyGroup(StudyGroup studyGroup) {
         if (studyGroup != null) {
-            Collection.getInstance().addElement(studyGroup);
+            lock.lock();
+            DBManager.insertStudyGroup(studyGroup);
+            Collection.getInstance().reload();
+            lock.unlock();
         }
     }
 
 
     @Override
-    public void execute(StudyGroup studyGroup, boolean muteMode) {
+    public void execute(StudyGroup studyGroup, boolean muteMode, Authentication auth) {
         try {
             addStudyGroup(studyGroup);
             if (!muteMode) {

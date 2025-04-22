@@ -3,6 +3,7 @@ package commands;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import io.DistributionOfTheOutputStream;
+import storage.Authentication;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +60,7 @@ public class Help implements Helpable, Command<Void> {
     }
 
     @Override
-    public void execute(Void arg, boolean muteMode) {
+    public void execute(Void arg, boolean muteMode, Authentication auth) {
         help();
     }
 

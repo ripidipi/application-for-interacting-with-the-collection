@@ -1,19 +1,22 @@
 package io;
 
+import commands.Commands;
 import commands.Exit;
-import exceptions.RemoveOfTheNextSymbol;
 import exceptions.UnauthorizedUser;
 import storage.Logging;
+import storage.Request;
+
+import java.net.InetSocketAddress;
+import java.nio.channels.DatagramChannel;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 
 
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
+import java.util.Objects;
 
 public class Authentication {
 
-    private static Authentication instance;
+    private static Authentication instance = null;
     private static String username;
     private static String password;
 
@@ -38,11 +41,29 @@ public class Authentication {
     }
 
     public boolean isAuthenticated() {
-        return instance != null;
+        boolean result = false;
+        if (instance == null) {
+            System.out.println("Authentication unsuccessfully");
+            Exit.exit();
+            return false;
+        }
+        try (DatagramChannel client = DatagramChannel.open()) {
+            client.configureBlocking(false);
+            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
+            return Objects.requireNonNull(Server.interaction(client, new Request<>(Commands.CHECK_AUTHENTICATION, null))).contains("true");
+        } catch (Exception e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        }
+        System.out.println("Authentication" + (result ? " successfully" : " unsuccessfully"));
+        if (!result) Exit.exit();
+        return true;
     }
 
     public static Authentication askAuthentication() {
         try {
+            if (instance == null) {
+                System.out.println("Authentication unsuccessfully");
+            }
             System.out.println("Authorization is required");
             String username = PrimitiveDataInput.input("Username", String.class);
             String password = PrimitiveDataInput.input("Password", String.class);
@@ -61,8 +82,8 @@ public class Authentication {
 
     private static String bytesToHex(byte[] hash) {
         StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xff & hash[i]);
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
             if (hex.length() == 1) {
                 hexString.append('0');
             }

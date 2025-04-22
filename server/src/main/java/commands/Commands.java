@@ -1,6 +1,7 @@
 package commands;
 
 import commands.interfaces.Command;
+import storage.Authentication;
 
 /**
  * Enum representing the available commands in the system.
@@ -75,8 +76,7 @@ public enum Commands {
      * @param arg      The input argument for the command.
      * @param muteMode The mode in which the command should run.
      */
-    @SuppressWarnings("unchecked")
-    public <T> void execute(T arg, boolean muteMode) {
-        ((Command<T>) command).execute(arg, muteMode);
+    public <T> void execute(T arg, boolean muteMode, Authentication auth) {
+        ((Command<T>) command).execute(arg, muteMode, auth);
     }
 }

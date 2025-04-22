@@ -1,45 +1,58 @@
 package commands;
 
-import storage.Logging;
 import collection.Collection;
-import collection.StudyGroup;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
+import exceptions.InsufficientNumberOfArguments;
+import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
+import storage.DBManager;
+import storage.Logging;
+import storage.Authentication;
 
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Command that removes a study group by its ID.
- * This command searches for a study group with the specified ID and removes it from the collection if it exists.
+ * Command that removes a study group by its ID from the database.
+ * Only the owner of the group can remove it.
  */
 public class RemoveById implements Helpable, Command<Integer> {
 
-    private static void removeById(Integer id) {
+    private static final ReentrantLock lock = new ReentrantLock();
+
+    private boolean removeById(int id, String username) {
+        String sql = "DELETE FROM study_group WHERE id = ? AND owner_username = ?";
+        return DBManager.applyRequest(id, username, sql);
+    }
+
+    @Override
+    public void execute(Integer id, boolean muteMode, Authentication auth) {
         try {
-            TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-            collection.stream()
-                    .filter(sg -> Objects.equals(sg.getId(), id))
-                    .findFirst()
-                    .ifPresent(collection::remove);
-            DistributionOfTheOutputStream.println("Object has been removed.");
-        } catch (RuntimeException e) {
+            lock.lock();
+
+            boolean deleted = removeById(id, auth.name());
+            if (deleted) {
+                DistributionOfTheOutputStream.println("StudyGroup with id " + id + " has been removed.");
+            } else {
+                DistributionOfTheOutputStream.println("StudyGroup not found or you don't have permission to delete it.");
+            }
+
+            Collection.getInstance().reload();
+
+        } catch (InsufficientNumberOfArguments | RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
-    public void execute(Integer arg, boolean muteMode) {
-        removeById(arg);
-    }
-
-    @Override
     public String getHelp() {
-        return "Removes a study group from the collection by its ID. " +
-                "If no study group with the specified ID exists, no action is performed.";
+        return "Removes a study group from the database by its ID. Only the group owner can perform this action.";
     }
 }

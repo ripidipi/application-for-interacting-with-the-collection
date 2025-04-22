@@ -2,8 +2,7 @@ package commands;
 
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
-import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that exits the program.
@@ -20,9 +19,9 @@ public class Exit implements Helpable, Command {
     }
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         exit();
-        return new RequestPair<>(Commands.EXIT, (Void)null);
+        return new Request<>(Commands.EXIT, (Void)null);
     }
 
     @Override

@@ -9,7 +9,7 @@ import commands.interfaces.Helpable;
 import exceptions.InsufficientNumberOfArguments;
 import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that removes study groups lower than a given one from the collection.
@@ -19,10 +19,10 @@ import storage.RequestPair;
 public class RemoveLower implements Helpable, Command {
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         try {
             StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "RemoveLower", false);
-            return new RequestPair<>(Commands.REMOVE_LOWER, studyGroup);
+            return new Request<>(Commands.REMOVE_LOWER, studyGroup);
         } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {

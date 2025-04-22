@@ -9,7 +9,7 @@ import commands.interfaces.Helpable;
 import exceptions.InsufficientNumberOfArguments;
 import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that adds a study group to the collection only if it is the largest from the console.
@@ -23,10 +23,10 @@ public class AddIfMax implements Helpable, Command {
      * @param inputMode the input mode (e.g., console or file)
      */
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         try {
             StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "AddIfMax", false);
-            return new RequestPair<>(Commands.ADD_IF_MAX, studyGroup);
+            return new Request<>(Commands.ADD_IF_MAX, studyGroup);
         } catch (InsufficientNumberOfArguments | IncorrectValue e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (RemoveOfTheNextSymbol e) {

@@ -3,7 +3,7 @@ package commands;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,8 +60,8 @@ public class Help implements Helpable, Command {
     }
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
-        return new RequestPair<>(Commands.HELP, (Void)null);
+    public Request<?> execute(String arg, String inputMode) {
+        return new Request<>(Commands.HELP, (Void)null);
     }
 
     @Override

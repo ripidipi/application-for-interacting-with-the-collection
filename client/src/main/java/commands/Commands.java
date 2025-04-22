@@ -1,7 +1,7 @@
 package commands;
 
 import commands.interfaces.Command;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Enum representing the available commands in the system.
@@ -76,7 +76,7 @@ public enum Commands {
      * @param arg       the argument to pass to the command
      * @param inputMode the mode in which the input is provided (e.g., console or file)
      */
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         return command.execute(arg, inputMode);
     }
 }

@@ -1,5 +1,7 @@
 package commands;
 
+import storage.Authentication;
+import storage.DBManager;
 import storage.Logging;
 import collection.Collection;
 import collection.StudyGroup;
@@ -9,40 +11,50 @@ import exceptions.InsufficientNumberOfArguments;
 import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
 
-import java.util.Objects;
-import java.util.TreeSet;
-
-
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Command that updates a study group in the collection by its ID from console.
+ * Command that updates a study group by its ID from the database.
  */
 public class Update implements Helpable, Command<StudyGroup> {
 
-    private static void update(StudyGroup studyGroup) {
-        TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-        collection.stream()
-                .filter(sg -> Objects.equals(sg.getId(), studyGroup.getId()))
-                .findFirst()
-                .ifPresent(sg -> {
-                    Collection.getInstance().removeElement(sg);
-                    Collection.getInstance().addElement(studyGroup);
-                });
-        DistributionOfTheOutputStream.println("Study group " + studyGroup.getId() + " is successfully updated");
+    private static final ReentrantLock lock = new ReentrantLock();
+
+    private boolean updateInDatabase(StudyGroup studyGroup, String username) {
+        return DBManager.updateStudyGroup(studyGroup, username);
     }
 
     @Override
-    public void execute(StudyGroup studyGroup, boolean muteMode) {
-        try{
-            update(studyGroup);
+    public void execute(StudyGroup studyGroup, boolean muteMode, Authentication auth) {
+        try {
+            lock.lock();
+            if (!CheckIsWithId.validateId(studyGroup.getId())) {
+                DistributionOfTheOutputStream.println("No objects with this id in the database");
+                lock.unlock();
+                return;
+            }
+            boolean updated = updateInDatabase(studyGroup, auth.name());
+
+            if (updated) {
+                DistributionOfTheOutputStream.println("StudyGroup with id " + studyGroup.getId() + " has been updated.");
+            } else {
+                DistributionOfTheOutputStream.println("StudyGroup not found or you don't have permission to update it.");
+            }
+
+            Collection.getInstance().reload();
+
+        } catch (InsufficientNumberOfArguments | RemoveOfTheNextSymbol e) {
+            DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public String getHelp() {
-        return "Updates an existing study group by its ID. You can update study " +
-                "groups either through user input or by loading data from a file.";
+        return "Updates an existing study group by its ID in the database. " +
+                "Only the owner of the study group can update it.";
     }
 }

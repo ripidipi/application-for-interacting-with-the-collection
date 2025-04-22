@@ -7,7 +7,7 @@ import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import exceptions.RemoveOfTheNextSymbol;
 import io.DistributionOfTheOutputStream;
-import storage.RequestPair;
+import storage.Request;
 
 
 /**
@@ -16,14 +16,14 @@ import storage.RequestPair;
 public class Update implements Helpable, Command {
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         try{
             Integer id = StudyGroupFabric.getIdInteger(arg);
             if (Command.checkIsNotWithId(id)) {
                 throw new RuntimeException("No element to update with this id in collection");
             }
             StudyGroup studyGroup = StudyGroupFabric.parseStudyGroup(arg, inputMode, "Update", true);
-            return new RequestPair<>(Commands.UPDATE, studyGroup);
+            return new Request<>(Commands.UPDATE, studyGroup);
         } catch (RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());
             Exit.exit();

@@ -5,7 +5,7 @@ import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
 import io.Server;
 import storage.Logging;
-import storage.RequestPair;
+import storage.Request;
 import storage.RunningFiles;
 import storage.SavingAnEmergencyStop;
 
@@ -25,10 +25,10 @@ public class ClientApp {
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            while (Exit.running & Authentication.getInstance().isAuthenticated()) {
+            while (Exit.running && Authentication.getInstance().isAuthenticated()) {
                 System.out.print("Enter the command: ");
 
-                RequestPair<?> request = CommandsHandler.input();
+                Request<?> request = CommandsHandler.input();
                 if (request != null) {
                     DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
                 }
@@ -43,7 +43,7 @@ public class ClientApp {
     }
 
     public static void checkPreviousSession() {
-        if (SavingAnEmergencyStop.checkIfPreviousSession() & Authentication.getInstance().isAuthenticated()) {
+        if (false & SavingAnEmergencyStop.checkIfPreviousSession() & Authentication.getInstance().isAuthenticated()) {
             runPreviousSession();
         }
     }

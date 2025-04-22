@@ -1,5 +1,6 @@
 package collection;
 
+import storage.DBManager;
 import storage.Logging;
 import storage.Server;
 
@@ -86,29 +87,19 @@ public class Collection {
         collection.add(studyGroup);
     }
 
+    public void reload() {
+        clearCollection();
+        DBManager.requestStudyGroup("SELECT * FROM STUDY_GROUP");
+    }
+
     /**
      * Saves the collection of study groups to a CSV file named "collection.csv".
      * If the file exists, it is overwritten.
      */
     public static void output() {
         TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-        String csvFile = Server.getCollectionPath();
-        File file = new File(csvFile);
-
-        if (file.exists()) {
-            file.delete();
-        }
-
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(csvFile), StandardCharsets.UTF_8)) {
-            writer.write("ID,Name,CoordinateX,CoordinateY,StudentsCount," +
-                    "FormOfEducation,Semester,AdminName,AdminBirthday,Height,PassportID\n");
-
-            for (StudyGroup studyGroup : collection) {
-                String writeRequest = StudyGroup.formatStudyGroupToCSV(studyGroup);
-                writer.write(writeRequest);
-            }
-        } catch (Exception e) {
-            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        for (StudyGroup studyGroup : collection) {
+            DBManager.insertStudyGroup(studyGroup);
         }
     }
 }

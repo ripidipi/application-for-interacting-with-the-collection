@@ -3,7 +3,7 @@ package commands;
 import collection.fabrics.StudyGroupFabric;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that removes a study group by its ID.
@@ -12,12 +12,12 @@ import storage.RequestPair;
 public class RemoveById implements Helpable, Command {
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
+    public Request<?> execute(String arg, String inputMode) {
         Integer id = StudyGroupFabric.getIdInteger(arg);
         if (Command.checkIsNotWithId(id)) {
             throw new RuntimeException("No element to update with this id in collection");
         }
-        return new RequestPair<>(Commands.REMOVE_BY_ID, StudyGroupFabric.getIdInteger(arg));
+        return new Request<>(Commands.REMOVE_BY_ID, StudyGroupFabric.getIdInteger(arg));
     }
 
     @Override

@@ -2,7 +2,7 @@ package commands;
 
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that groups study groups by ID and counts the number of elements in each group.
@@ -10,8 +10,8 @@ import storage.RequestPair;
 public class GroupCountingById implements Helpable, Command {
 
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
-        return new RequestPair<>(Commands.GROUP_COUNTING_BY_ID, (Void)null);
+    public Request<?> execute(String arg, String inputMode) {
+        return new Request<>(Commands.GROUP_COUNTING_BY_ID, (Void)null);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package commands;
 
+import storage.Authentication;
 import storage.Logging;
 import collection.Collection;
 import collection.Person;
@@ -12,12 +13,14 @@ import io.DistributionOfTheOutputStream;
 
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Command that counts the number of study groups where a specified person is the admin from console.
  */
 public class CountByGroupAdmin implements Helpable, Command<Person> {
 
+    private static final ReentrantLock lock = new ReentrantLock();
     /**
      * Counts the number of study groups where the user-specified person is the admin.
      */
@@ -31,8 +34,9 @@ public class CountByGroupAdmin implements Helpable, Command<Person> {
 
 
     @Override
-    public void execute(Person person, boolean muteMode) {
+    public void execute(Person person, boolean muteMode, Authentication auth) {
         try {
+            lock.lock();
             countByGroupAdmin(person);
         } catch (InsufficientNumberOfArguments e) {
             DistributionOfTheOutputStream.println(e.getMessage());
@@ -41,6 +45,8 @@ public class CountByGroupAdmin implements Helpable, Command<Person> {
             Exit.exit();
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        } finally {
+            lock.unlock();
         }
     }
 

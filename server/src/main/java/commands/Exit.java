@@ -4,6 +4,7 @@ import commands.interfaces.Command;
 import commands.interfaces.Helpable;
 import io.DistributionOfTheOutputStream;
 import io.PreparingOfOutputStream;
+import storage.Authentication;
 
 /**
  * Command that exits the program.
@@ -20,7 +21,7 @@ public class Exit implements Helpable, Command<Void> {
     }
 
     @Override
-    public void execute(Void arg, boolean muteMode) {
+    public void execute(Void arg, boolean muteMode, Authentication auth) {
         exit();
     }
 

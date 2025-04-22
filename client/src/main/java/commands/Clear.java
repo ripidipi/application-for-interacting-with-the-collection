@@ -2,7 +2,7 @@ package commands;
 
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
-import storage.RequestPair;
+import storage.Request;
 
 /**
  * Command that clears the entire collection.
@@ -16,8 +16,8 @@ public class Clear implements Helpable, Command {
      * @param inputMode unused input mode
      */
     @Override
-    public RequestPair<?> execute(String arg, String inputMode) {
-        return new RequestPair<>(Commands.CLEAR, (Void)null);
+    public Request<?> execute(String arg, String inputMode) {
+        return new Request<>(Commands.CLEAR, (Void)null);
     }
 
     /**

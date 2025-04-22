@@ -26,31 +26,9 @@ public class FillCollectionFromFile {
      */
     public static void fillCollectionFromFile() {
         try {
-            String fileName = Server.getCollectionPath();
-            CommandsHandler.inputFromFile(fileName, FillCollectionFromFile::parseObject);
+            DBManager.requestStudyGroup("SELECT * FROM STUDY_GROUP");
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
-    }
-
-    private static StudyGroup parseObject(String input) {
-        try {
-            String[] inputSplit = input.split(",");
-            Integer id = Integer.parseInt(inputSplit[0]);
-            String name = inputSplit[1];
-            Coordinates coordinates = new Coordinates(
-                            Objects.equals(inputSplit[2], " ") ? null : Long.parseLong(inputSplit[2]),
-                            Objects.equals(inputSplit[3], " ") ? null : Float.parseFloat(inputSplit[3]));
-            Integer studentCount = Integer.parseInt(inputSplit[4]);
-            FormOfEducation formOfEducation = Enum.valueOf(FormOfEducation.class, inputSplit[5].toUpperCase());
-            Semester semester = Enum.valueOf(Semester.class, inputSplit[6].toUpperCase());
-            Person groupAdmin = new Person(inputSplit[7],
-                    LocalDate.parse(inputSplit[8], DateTimeFormatter.ofPattern("dd/MM/yyyy")).atStartOfDay(),
-                    Objects.equals(inputSplit[9], " ") ? null : Double.parseDouble(inputSplit[9]), inputSplit[10]);
-            return new StudyGroup(id, name, coordinates, studentCount, formOfEducation, semester, groupAdmin);
-        } catch (Exception e) {
-            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
-        }
-        return null;
     }
 }
