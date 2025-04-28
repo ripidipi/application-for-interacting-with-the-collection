@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 
 
 import java.util.Objects;
+import java.util.Scanner;
 
 public class Authentication {
 
@@ -27,7 +28,7 @@ public class Authentication {
 
     public static Authentication getInstance() {
         if (instance == null) {
-            instance = askAuthentication();
+            askAuthentication();
         }
         return instance;
     }
@@ -47,10 +48,8 @@ public class Authentication {
             Exit.exit();
             return false;
         }
-        try (DatagramChannel client = DatagramChannel.open()) {
-            client.configureBlocking(false);
-            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
-            return Objects.requireNonNull(Server.interaction(client, new Request<>(Commands.CHECK_AUTHENTICATION, null))).contains("true");
+        try {
+            return Objects.requireNonNull(Server.interaction(new Request<>(Commands.CHECK_AUTHENTICATION, null))).contains("true");
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
@@ -59,19 +58,40 @@ public class Authentication {
         return true;
     }
 
-    public static Authentication askAuthentication() {
+    public static void askAuthentication() {
         try {
-            if (instance == null) {
-                System.out.println("Authentication unsuccessfully");
+            System.out.println("To Sign in: type S \t to Login: type L ");
+            Scanner scanner = new Scanner(System.in);
+            String decision = scanner.nextLine();
+            if (decision.equalsIgnoreCase("L")) {
+                logIn();
+            } else {
+                signIn();
             }
-            System.out.println("Authorization is required");
-            String username = PrimitiveDataInput.input("Username", String.class);
-            String password = PrimitiveDataInput.input("Password", String.class);
-            return new Authentication(username, makeHash(password));
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
-        throw new UnauthorizedUser("");
+    }
+
+    public static void logIn() throws Exception {
+        System.out.println("Login attempt");
+        askUser();
+    }
+
+    public static void signIn() throws Exception {
+        System.out.println("Sign In attempt");
+        askUser();
+        try {
+             DistributionOfTheOutputStream.printFromServer(Server.interaction(new Request<>(Commands.ADD_USER, null)));
+        } catch (Exception e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+        }
+    }
+
+    public static void askUser() throws Exception {
+        String username = PrimitiveDataInput.input("Username", String.class);
+        String password = PrimitiveDataInput.input("Password", String.class);
+        instance = new Authentication(username, makeHash(password));
     }
 
     public static String makeHash(String arg) throws Exception {

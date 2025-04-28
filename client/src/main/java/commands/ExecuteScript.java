@@ -33,7 +33,7 @@ public class ExecuteScript implements Helpable, Command {
     public static void executeScript(String fileName) {
         executeScriptMode = true;
         DistributionOfTheOutputStream.printlnToFile("Starting script execution: " + fileName);
-        try (DatagramChannel client = DatagramChannel.open()) {
+        try  {
             if (fileName == null || fileName.isEmpty()) {
                 throw new IncorrectValue("File name cannot be empty.");
             }
@@ -42,10 +42,7 @@ public class ExecuteScript implements Helpable, Command {
                 throw new InfiniteRecursion("Infinite recursion detected with file: " + fileName);
             }
             RunningFiles.getInstance().addFileName(new FileName(fileName.toUpperCase(), Authentication.getInstance()));
-            client.configureBlocking(false);
-            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
-
-            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, new Request<>(Commands.EXECUTE_SCRIPT, null)));
+            DistributionOfTheOutputStream.printFromServer(Server.interaction(new Request<>(Commands.EXECUTE_SCRIPT, null)));
 
             CommandsHandler.inputFromFile(fileName);
 

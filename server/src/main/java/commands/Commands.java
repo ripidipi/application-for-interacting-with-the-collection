@@ -57,6 +57,8 @@ public enum Commands {
 
     CHECK_IS_WITH_ID(new CheckIsWithId()),
 
+    ADD_USER(new AddUser()),
+
     CHECK_AUTHENTICATION(new CheckAuthentication());
 
     private final Command<?> command;

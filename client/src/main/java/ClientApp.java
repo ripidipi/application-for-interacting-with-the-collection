@@ -21,16 +21,13 @@ public class ClientApp {
     }
 
     public static void runCommandLoop() {
-        try (DatagramChannel client = DatagramChannel.open()) {
-            client.configureBlocking(false);
-            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
-
+        try {
             while (Exit.running) {
                 System.out.print("Enter the command: ");
 
                 Request<?> request = CommandsHandler.input();
                 if (request != null) {
-                    DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
+                    DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
                 }
             }
         } catch (PortUnreachableException e) {

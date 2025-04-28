@@ -6,6 +6,7 @@ import storage.Request;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
@@ -23,33 +24,33 @@ public class Server {
         return SERVER_PORT;
     }
 
-    public static String interaction(DatagramChannel client, Request<?> request) throws IOException, InterruptedException {
+    public static String interaction(Request<?> request) throws IOException, InterruptedException {
+        try (DatagramChannel client = DatagramChannel.open()) {
+            client.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
+            client.configureBlocking(false);
 
-        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-        ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
-        objectOut.writeObject(request);
-        objectOut.flush();
-        byte[] bytes = byteOut.toByteArray();
-
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        client.write(buffer);
-
-        ByteBuffer receiveBuffer = ByteBuffer.allocate(4096);
-        long startTime = System.currentTimeMillis();
-
-
-        while (receiveBuffer.position() == 0) {
-            if (System.currentTimeMillis() - startTime > 3e3) {
-                System.out.println("Server unavailable.");
-                Exit.exit();
-                return null;
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            try (ObjectOutputStream oout = new ObjectOutputStream(bout)) {
+                oout.writeObject(request);
             }
-            Thread.sleep(3);
-            client.read(receiveBuffer);
-        }
+            byte[] bytes = bout.toByteArray();
 
-        receiveBuffer.flip();
-        return new String(receiveBuffer.array(), 0,
-                receiveBuffer.limit(), StandardCharsets.UTF_8);
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            client.write(buffer);
+
+            ByteBuffer recv = ByteBuffer.allocate(4096);
+            long deadline = System.currentTimeMillis() + 3000;
+            while (recv.position() == 0) {
+                if (System.currentTimeMillis() > deadline) {
+                    System.out.println("Server unavailable.");
+                    Exit.exit();
+                }
+                Thread.sleep(10);
+                client.read(recv);
+            }
+            recv.flip();
+            return StandardCharsets.UTF_8.decode(recv).toString();
+        }
     }
+
 }

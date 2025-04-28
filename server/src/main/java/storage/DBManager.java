@@ -37,14 +37,14 @@ public class DBManager {
             System.out.println("Connected to database successfully");
             while (rs.next()) {
                 Coordinates coordinates = new Coordinates(
-                        rs.getLong("x"),
-                        rs.getFloat("y")
+                        rs.getLong("x") == 0 ? null : rs.getLong("x"),
+                        rs.getFloat("y") == 0 ? null : rs.getFloat("y")
                 );
                 Person admin = new Person(
                         rs.getString("admin_name"),
                         rs.getDate("admin_birthday") != null ?
                                 rs.getDate("admin_birthday").toLocalDate().atStartOfDay() : null,
-                        rs.getDouble("admin_height"),
+                        rs.getDouble("admin_height") == 0 ? null : rs.getDouble("admin_height"),
                         rs.getString("admin_passport_id")
                 );
                 String ownerUsername = rs.getString("owner_username");
@@ -117,14 +117,14 @@ public class DBManager {
     /**
      * Checks if a user exists by username.
      */
-    public static boolean doesUserExist(String username) {
-        String sql = "SELECT 1 FROM users WHERE username = ? LIMIT 1";
+    public static boolean addUser(String username, String password) {
+        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
+            stmt.setString(2, password);
+            stmt.executeUpdate();
+            return true;
         } catch (SQLException e) {
             System.out.println("Error checking user existence: " + e.getMessage());
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));

@@ -70,12 +70,8 @@ public class SavingAnEmergencyStop {
     }
 
     public static void sentRequestToServer(Request<?> request) {
-        try (DatagramChannel client = DatagramChannel.open()) {
-            client.configureBlocking(false);
-            client.connect(
-                    new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
-
-            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
+        try {
+            DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }

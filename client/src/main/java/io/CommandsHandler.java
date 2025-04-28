@@ -115,15 +115,12 @@ public class CommandsHandler {
 
             try (Scanner scanner = new Scanner(file)) {
                 while (scanner.hasNextLine()) {
-                    try (DatagramChannel client = DatagramChannel.open()) {
-                        client.configureBlocking(false);
-                        client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
-
+                    try {
                         String line = scanner.nextLine();
                         String[] values = line.split(",");
                         Request<?> request = isCommand(values, "F");
                         if(request != null)
-                            DistributionOfTheOutputStream.printFromServer(Server.interaction(client, request));
+                            DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
                     } catch (Exception e) {
                         Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                     }

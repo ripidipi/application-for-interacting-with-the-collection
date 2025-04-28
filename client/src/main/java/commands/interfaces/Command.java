@@ -15,10 +15,8 @@ public interface Command {
     Request<?> execute(String arg, String inputMode);
 
     static boolean checkIsNotWithId(int id) {
-        try (DatagramChannel client = DatagramChannel.open()) {
-            client.configureBlocking(false);
-            client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
-            String response = Server.interaction(client, new Request<>(Commands.CHECK_IS_WITH_ID, id));
+        try {
+            String response = Server.interaction(new Request<>(Commands.CHECK_IS_WITH_ID, id));
             if (response == null) {return false;}
             return !response.contains("true");
         } catch (Exception e) {
