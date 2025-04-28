@@ -1,1 +1,17 @@
 Logging Initialized 
+[ERROR] File path doesn't found Commands.csv. Please try again.
+[io.CommandsHandler.inputFromFile(CommandsHandler.java:113)
+, commands.ExecuteScript.executeScript(ExecuteScript.java:48)
+, commands.ExecuteScript.execute(ExecuteScript.java:80)
+, commands.Commands.execute(Commands.java:80)
+, io.CommandsHandler.isCommand(CommandsHandler.java:57)
+, io.CommandsHandler.inputFromFile(CommandsHandler.java:124)
+, commands.ExecuteScript.executeScript(ExecuteScript.java:48)
+, commands.ExecuteScript.execute(ExecuteScript.java:80)
+, commands.Commands.execute(Commands.java:80)
+, io.CommandsHandler.isCommand(CommandsHandler.java:57)
+, io.CommandsHandler.input(CommandsHandler.java:88)
+, ClientApp.runCommandLoop(ClientApp.java:31)
+, ClientApp.main(ClientApp.java:20)
+]
+

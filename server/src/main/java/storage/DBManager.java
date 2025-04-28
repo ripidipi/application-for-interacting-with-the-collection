@@ -164,15 +164,15 @@ public class DBManager {
      */
     private static void prepareStudyGroupStatement(StudyGroup studyGroup, PreparedStatement stmt) throws SQLException {
         stmt.setString(1, studyGroup.getName());
-        stmt.setDouble(2, studyGroup.getCoordinates().x());
-        stmt.setFloat(3, studyGroup.getCoordinates().y());
+        stmt.setObject(2, studyGroup.getCoordinates().x(), Types.BIGINT);
+        stmt.setObject(3, studyGroup.getCoordinates().y(), Types.FLOAT);
         stmt.setTimestamp(4, Timestamp.valueOf(studyGroup.getCreationDate()));
         stmt.setInt(5, studyGroup.getStudentCount());
         stmt.setString(6, studyGroup.getFormOfEducation().toString());
         stmt.setString(7, studyGroup.getSemester().toString());
         stmt.setString(8, studyGroup.getGroupAdmin().name());
         stmt.setDate(9, studyGroup.getGroupAdmin().birthday() != null ? Date.valueOf(studyGroup.getGroupAdmin().birthday().toLocalDate()) : null);
-        stmt.setDouble(10, studyGroup.getGroupAdmin().height());
+        stmt.setObject(3, studyGroup.getGroupAdmin().height(), Types.DOUBLE);
         stmt.setString(11, studyGroup.getGroupAdmin().passportID());
         stmt.setString(12, studyGroup.getOwner());
     }

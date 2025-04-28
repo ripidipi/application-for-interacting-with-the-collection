@@ -25,7 +25,7 @@ public class ClientApp {
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
-            while (Exit.running && Authentication.getInstance().isAuthenticated()) {
+            while (Exit.running) {
                 System.out.print("Enter the command: ");
 
                 Request<?> request = CommandsHandler.input();
@@ -43,7 +43,7 @@ public class ClientApp {
     }
 
     public static void checkPreviousSession() {
-        if (false & SavingAnEmergencyStop.checkIfPreviousSession() & Authentication.getInstance().isAuthenticated()) {
+        if (SavingAnEmergencyStop.checkIfPreviousSession()) {
             runPreviousSession();
         }
     }

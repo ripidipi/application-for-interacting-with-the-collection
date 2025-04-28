@@ -49,7 +49,7 @@ public class CommandsHandler {
      */
     public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
-            if (inputSplit.length != 0 && convertToEnum(inputSplit[0])) {
+            if (inputSplit.length != 0 && convertToEnum(inputSplit[0]) && Authentication.getInstance().isAuthenticated()) {
                 Commands command = Enum.valueOf(Commands.class, inputSplit[0].toUpperCase());
                 SavingAnEmergencyStop.addStringToFile(command.name());
                 Request<?> request;

@@ -48,6 +48,7 @@ public record Person(String name, LocalDateTime birthday, Double height, String 
                 .orElse(" ");
     }
 
+
     public DateTimeFormatter getBirthdayFormatter() {
         return BIRTHDAY_FORMATTER;
     }

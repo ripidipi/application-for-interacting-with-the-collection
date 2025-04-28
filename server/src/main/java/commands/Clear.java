@@ -24,7 +24,7 @@ public class Clear implements Helpable, Command<Void> {
     public static void clearCollection() {
         try {
             lock.lock();
-            DBManager.requestStudyGroup("DELETE * FROM STUDY_GROUP WHERE owner_username = ?");
+            DBManager.requestStudyGroup("DELETE FROM study_group WHERE owner_username = ?");
             Collection.getInstance().reload();
             DistributionOfTheOutputStream.println("The collection has been cleared.");
         } catch (Exception e) {

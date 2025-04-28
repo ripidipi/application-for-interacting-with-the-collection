@@ -51,7 +51,6 @@ public class ExecuteScript implements Helpable, Command {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
-
         } finally {
             DistributionOfTheOutputStream.printlnToFile("");
             executeScriptMode = false;
