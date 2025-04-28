@@ -9,7 +9,7 @@ import java.util.Set;
  */
 public class RunningFiles {
 
-    private Set<String> filesNames = new HashSet<>();
+    private Set<FileName> filesNames = new HashSet<>();
     private static RunningFiles instance;
 
     private RunningFiles() {}
@@ -32,7 +32,7 @@ public class RunningFiles {
      *
      * @return a set containing the names of the files
      */
-    public Set<String> getFilesNames() {
+    public Set<FileName> getFilesNames() {
         return filesNames;
     }
 
@@ -41,7 +41,7 @@ public class RunningFiles {
      *
      * @param fileName the name of the file to add to the set
      */
-    public void addFileName(String fileName) {
+    public void addFileName(FileName fileName) {
         this.filesNames.add(fileName);
     }
 
@@ -51,7 +51,7 @@ public class RunningFiles {
      * @param fileName the name of the file to check
      * @return true if the file is present in the set, false otherwise
      */
-    public boolean isThere(String fileName) {
+    public boolean isThere(FileName fileName) {
         return filesNames.contains(fileName);
     }
 
@@ -60,7 +60,7 @@ public class RunningFiles {
      *
      * @param fileName the name of the file to remove from the set
      */
-    public void removeFileName(String fileName) {
+    public void removeFileName(FileName fileName) {
         this.filesNames.remove(fileName);
     }
 }

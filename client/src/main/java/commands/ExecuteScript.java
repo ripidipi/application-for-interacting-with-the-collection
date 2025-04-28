@@ -1,6 +1,8 @@
 package commands;
 
+import io.Authentication;
 import io.Server;
+import storage.FileName;
 import storage.Logging;
 import commands.interfaces.Command;
 import commands.interfaces.Helpable;
@@ -36,10 +38,10 @@ public class ExecuteScript implements Helpable, Command {
                 throw new IncorrectValue("File name cannot be empty.");
             }
 
-            if (RunningFiles.getInstance().isThere(fileName.toUpperCase())) {
+            if (RunningFiles.getInstance().isThere(new FileName(fileName.toUpperCase(), Authentication.getInstance()))) {
                 throw new InfiniteRecursion("Infinite recursion detected with file: " + fileName);
             }
-            RunningFiles.getInstance().addFileName(fileName.toUpperCase());
+            RunningFiles.getInstance().addFileName(new FileName(fileName.toUpperCase(), Authentication.getInstance()));
             client.configureBlocking(false);
             client.connect(new InetSocketAddress(Server.getServerHost(), Server.getServerPort()));
 
