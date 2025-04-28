@@ -10,9 +10,6 @@ import storage.DBManager;
 import storage.Logging;
 import storage.Authentication;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -25,7 +22,7 @@ public class RemoveById implements Helpable, Command<Integer> {
 
     private boolean removeById(int id, String username) {
         String sql = "DELETE FROM study_group WHERE id = ? AND owner_username = ?";
-        return DBManager.applyRequest(id, username, sql);
+        return DBManager.queryById(id, username, sql);
     }
 
     @Override

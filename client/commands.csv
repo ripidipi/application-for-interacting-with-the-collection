@@ -19,6 +19,5 @@ Remove_greater,53928,goossdTut,1703,17.03,1298,EVENING_CLASSES,FOURTH,Andre,12/1
 show
 update,53928,aaaaaaaaaaaaaaaaa,1703,17.03,1298,EVENING_CLASSES,FOURTH,Andre,12/13/1212,180.0,GOOOLLLL777
 show
-clear
 info
-execute_script,Commands.csv
+execute_script,client/commands.csv

@@ -21,10 +21,15 @@ public class Clear implements Helpable, Command<Void> {
     /**
      * Clears all elements from the collection and resets study group IDs.
      */
-    public static void clearCollection() {
+    public static void clearCollection(Authentication auth) {
         try {
             lock.lock();
-            DBManager.requestStudyGroup("DELETE FROM study_group WHERE owner_username = ?");
+            if (DBManager.queryByOwner(auth.name(), "DELETE FROM study_group WHERE owner_username = ?")) {
+                DistributionOfTheOutputStream.println("The collection has been cleared.");
+            } else {
+                DistributionOfTheOutputStream.println("Has the collection already been cleared, " +
+                                                            "or has something gone wrong");
+            }
             Collection.getInstance().reload();
             DistributionOfTheOutputStream.println("The collection has been cleared.");
         } catch (Exception e) {
@@ -37,7 +42,7 @@ public class Clear implements Helpable, Command<Void> {
 
     @Override
     public void execute(Void arg, boolean muteMode, Authentication auth) {
-        clearCollection();
+        clearCollection(auth);
     }
 
     /**

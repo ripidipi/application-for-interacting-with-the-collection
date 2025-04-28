@@ -67,7 +67,7 @@ public class DBManager {
         }
     }
 
-    public static boolean applyRequest(int id, String username, String query) {
+    public static boolean queryById(int id, String username, String query) {
         try (Connection connection = DBManager.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query)) {
 
@@ -78,7 +78,21 @@ public class DBManager {
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            Logging.log(Logging.makeMessage("SQL error during removeById: " + e.getMessage(), e.getStackTrace()));
+            Logging.log(Logging.makeMessage("SQL error during work " + e.getMessage(), e.getStackTrace()));
+            return false;
+        }
+    }
+
+    public static boolean queryByOwner(String username, String query) {
+        try (Connection connection = DBManager.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+
+            stmt.setString(1, username);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            Logging.log(Logging.makeMessage("SQL error during work " + e.getMessage(), e.getStackTrace()));
             return false;
         }
     }
@@ -172,7 +186,7 @@ public class DBManager {
         stmt.setString(7, studyGroup.getSemester().toString());
         stmt.setString(8, studyGroup.getGroupAdmin().name());
         stmt.setDate(9, studyGroup.getGroupAdmin().birthday() != null ? Date.valueOf(studyGroup.getGroupAdmin().birthday().toLocalDate()) : null);
-        stmt.setObject(3, studyGroup.getGroupAdmin().height(), Types.DOUBLE);
+        stmt.setObject(10, studyGroup.getGroupAdmin().height(), Types.DOUBLE);
         stmt.setString(11, studyGroup.getGroupAdmin().passportID());
         stmt.setString(12, studyGroup.getOwner());
     }

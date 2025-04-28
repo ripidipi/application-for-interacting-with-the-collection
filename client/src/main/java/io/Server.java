@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 public class Server {
 
     private static final String SERVER_HOST = "127.0.0.1"; // helios.cs.ifmo.ru
-    private static final int SERVER_PORT = 9999;
+    private static final int SERVER_PORT = 6611;
 
     public static String getServerHost() {
         return SERVER_HOST;
@@ -39,7 +39,7 @@ public class Server {
 
 
         while (receiveBuffer.position() == 0) {
-            if (System.currentTimeMillis() - startTime > 1e4) {
+            if (System.currentTimeMillis() - startTime > 3e3) {
                 System.out.println("Server unavailable.");
                 Exit.exit();
                 return null;

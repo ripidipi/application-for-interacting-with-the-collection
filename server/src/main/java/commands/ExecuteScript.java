@@ -18,9 +18,7 @@ public class ExecuteScript implements Helpable, Command<Void> {
 
 
     public static void executeScript() {
-        executeScriptMode ^= true;
-        DistributionOfTheOutputStream.printlnC(
-                executeScriptMode ? "Execute script started" : "Execute script finished");
+        DistributionOfTheOutputStream.printlnC("Execute script running...");
     }
 
     /**
