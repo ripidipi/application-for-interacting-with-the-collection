@@ -4,8 +4,8 @@ import commands.interfaces.Command;
 import storage.Request;
 
 /**
- * Enum representing the available commands in the system.
- * Each command corresponds to a specific action that can be executed.
+ * Enum representing the available commands in the system along with their access rules.
+ * Each constant pairs a Command implementation with its Rule set.
  */
 public enum Commands {
     /** help : display help information about available commands */
@@ -20,7 +20,7 @@ public enum Commands {
     /** add {element} : add a new element to the collection */
     ADD(new Add(), Rules.U),
 
-    /** update id {element} : update the value of a collection element whose ID matches the given one */
+    /** update id {element} : update a collection element by its ID */
     UPDATE(new Update(), Rules.U),
 
     /** remove_by_id id : remove an element from the collection by its ID */
@@ -29,60 +29,74 @@ public enum Commands {
     /** clear : clear the collection */
     CLEAR(new Clear(), Rules.U),
 
-    CHECK_IS_WITH_ID(new Show(), Rules.S),
+    /**
+     * CHECK_IS_WITH_ID : internal command to verify whether an ID is already present
+     * <p>Not available to regular users.</p>
+     */
+    CHECK_IS_WITH_ID(null, Rules.S),
 
-    CHECK_AUTHENTICATION(new Info(), Rules.S),
+    /** CHECK_AUTHENTICATION : internal command to verify user credentials */
+    CHECK_AUTHENTICATION(null, Rules.S),
 
-    /** execute_script file_name : read and execute a script from the specified file.
-     * The script contains commands in the same format as they are entered by the user in interactive mode.
+    /**
+     * execute_script file_name : read and execute commands from the specified script file
+     * <p>Supports batch execution of commands in the same format as interactive input.</p>
      */
     EXECUTE_SCRIPT(new ExecuteScript(), Rules.U),
 
-    ADD_USER(new Info(), Rules.S),
+    /** ADD_USER : internal command to add a new user account */
+    ADD_USER(null, Rules.S),
 
-    /** exit : terminate the program (without saving to a file) */
+    /** exit : terminate the program (without saving to file) */
     EXIT(new Exit(), Rules.U),
 
-    /** add_if_max {element} : add a new element to the collection if its value exceeds the value of the largest element in the collection */
+    /** add_if_max {element} : add a new element if it exceeds the current maximum */
     ADD_IF_MAX(new AddIfMax(), Rules.U),
 
-    /** remove_greater {element} : remove all elements from the collection that exceed the specified one */
+    /** remove_greater {element} : remove all elements greater than the given one */
     REMOVE_GREATER(new RemoveGreater(), Rules.U),
 
-    /** remove_lower {element} : remove all elements from the collection that are smaller than the specified one */
+    /** remove_lower {element} : remove all elements smaller than the given one */
     REMOVE_LOWER(new RemoveLower(), Rules.U),
 
-    /** remove_any_by_group_admin groupAdmin : remove a single element from the collection whose groupAdmin field value is equivalent to the given one */
+    /** remove_any_by_group_admin groupAdmin : remove one element matching the given group admin */
     REMOVE_ANY_BY_GROUP_ADMIN(new RemoveAnyByGroupAdmin(), Rules.U),
 
-    /** group_counting_by_id : group the elements of the collection by the ID field and display the number of elements in each group */
+    /** group_counting_by_id : group elements by ID and show counts */
     GROUP_COUNTING_BY_ID(new GroupCountingById(), Rules.U),
 
-    /** count_by_group_admin groupAdmin : display the number of elements whose groupAdmin field value matches the given one */
+    /** count_by_group_admin groupAdmin : show number of elements matching the given group admin */
     COUNT_BY_GROUP_ADMIN(new CountByGroupAdmin(), Rules.U);
 
     private final Command command;
     private final Rules rules;
 
     /**
-     * Constructor for a command.
+     * Constructs a Commands enum constant.
      *
-     * @param command the command to be executed
+     * @param command the Command implementation (null for internal-only commands)
+     * @param rules the access rules for this command
      */
     Commands(Command command, Rules rules) {
         this.command = command;
         this.rules = rules;
     }
 
+    /**
+     * Returns the access rules associated with the command.
+     *
+     * @return the Rules enum value indicating allowed user types
+     */
     public Rules getRules() {
         return rules;
     }
 
     /**
-     * Executes the command with the provided argument and input mode.
+     * Executes the associated Command implementation.
      *
-     * @param arg       the argument to pass to the command
-     * @param inputMode the mode in which the input is provided (e.g., console or file)
+     * @param arg the argument string to pass to the command
+     * @param inputMode the input mode identifier (console, file, etc.)
+     * @return a Request object produced by the command
      */
     public Request<?> execute(String arg, String inputMode) {
         return command.execute(arg, inputMode);

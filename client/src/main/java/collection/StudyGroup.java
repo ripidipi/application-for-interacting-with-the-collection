@@ -8,14 +8,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 /**
- * Class representing a study group. This class implements the Comparable interface to allow comparison
- * of study groups based on their unique ID.
+ * Represents a study group with unique ID, name, coordinates, creation date, student count,
+ * form of education, semester, group administrator, and owner. Implements Comparable for ID-based ordering.
  */
 public class StudyGroup implements Comparable<StudyGroup>, Serializable {
 
+    /**
+     * Map tracking allocated IDs to ensure uniqueness.
+     */
     public static Map<Integer, Boolean> IDs = new ConcurrentHashMap<>();
+
     private final Integer id;
     private final String name;
     private final Coordinates coordinates;
@@ -27,14 +30,16 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     private final String owner;
 
     /**
-     * Constructs a StudyGroup with a generated unique ID.
+     * Constructs a new StudyGroup with an automatically generated unique ID.
+     * The creation date is set to the current timestamp.
      *
-     * @param name The name of the study group.
-     * @param coordinates The coordinates of the study group.
-     * @param studentCount The number of students in the group.
-     * @param formOfEducation The form of education of the group.
-     * @param semester The semester of the group.
-     * @param groupAdmin The admin of the group.
+     * @param name the name of the study group
+     * @param coordinates the location coordinates for the group
+     * @param studentCount the number of students in the group
+     * @param formOfEducation the form of education for the group
+     * @param semester the semester associated with the group
+     * @param groupAdmin the administrator (Person) of the group
+     * @param owner the username of the creator/owner
      */
     public StudyGroup(String name, Coordinates coordinates,
                       Integer studentCount, FormOfEducation formOfEducation,
@@ -52,15 +57,17 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Constructs a StudyGroup with a provided unique ID.
+     * Constructs a StudyGroup with the specified ID and current creation timestamp.
+     * If the ID is non-null, it is tracked in the IDs map.
      *
-     * @param id The unique ID of the study group.
-     * @param name The name of the study group.
-     * @param coordinates The coordinates of the study group.
-     * @param studentCount The number of students in the group.
-     * @param formOfEducation The form of education of the group.
-     * @param semester The semester of the group.
-     * @param groupAdmin The admin of the group.
+     * @param id the unique identifier for the study group
+     * @param name the name of the study group
+     * @param coordinates the location coordinates
+     * @param studentCount the number of students
+     * @param formOfEducation the form of education
+     * @param semester the semester
+     * @param groupAdmin the administrator (Person) of the group
+     * @param owner the username of the creator/owner
      */
     public StudyGroup(Integer id, String name, Coordinates coordinates, Integer studentCount,
                       FormOfEducation formOfEducation,
@@ -79,10 +86,10 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Compares this StudyGroup to another StudyGroup based on the ID.
+     * Compares this StudyGroup to another based on their IDs.
      *
-     * @param other The StudyGroup to compare this one to.
-     * @return A negative integer, zero, or a positive integer as this ID is less than, equal to, or greater than the ID of the other StudyGroup.
+     * @param other the StudyGroup to compare against
+     * @return negative if this ID is less, zero if equal, positive if greater
      */
     @Override
     public int compareTo(StudyGroup other) {
@@ -90,10 +97,10 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Compares this StudyGroup to another object for equality. Two StudyGroups are equal if their IDs are the same.
+     * Checks equality based on ID value.
      *
-     * @param o The object to compare to.
-     * @return true if the IDs are equal, false otherwise.
+     * @param o the object to compare
+     * @return true if IDs are equal, false otherwise
      */
     @Override
     public boolean equals(Object o) {
@@ -104,10 +111,9 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Returns a hash code value for this StudyGroup. The hash code is based on the ID, name, coordinates,
-     * creation date, student count, form of education, semester, and group admin.
+     * Generates a hash code based on all major fields.
      *
-     * @return The hash code value for this StudyGroup.
+     * @return hash code value for this StudyGroup
      */
     @Override
     public int hashCode() {
@@ -116,10 +122,10 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Returns a string representation of this StudyGroup. The string includes the ID, name, coordinates,
-     * creation date, student count, form of education, semester, and group admin.
+     * Returns a detailed string representation of the StudyGroup.
+     * Includes all major fields in a readable format.
      *
-     * @return The string representation of this StudyGroup.
+     * @return formatted string with group details
      */
     @Override
     public String toString() {
@@ -135,12 +141,18 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Gets the ID of the StudyGroup.
+     * Retrieves the unique ID for this StudyGroup.
      *
-     * @return The ID of the StudyGroup.
+     * @return the group's ID
      */
     public Integer getId() { return id; }
 
+    /**
+     * Generates a new unique 6-digit ID not already in use.
+     * Tracks the new ID in the IDs map.
+     *
+     * @return a unique integer ID
+     */
     public static Integer generateId() {
         int randomID;
         SecureRandom random = new SecureRandom();
@@ -151,32 +163,37 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Gets the name of the StudyGroup.
+     * Retrieves the name of this StudyGroup.
      *
-     * @return The name of the StudyGroup.
+     * @return the group name
      */
     public String getName() { return name; }
 
+    /**
+     * Retrieves the owner (username) of this StudyGroup.
+     *
+     * @return the owner username
+     */
     public String getOwner() { return owner; }
 
     /**
-     * Gets the coordinates of the StudyGroup.
+     * Retrieves the coordinates of this StudyGroup.
      *
-     * @return The coordinates of the StudyGroup.
+     * @return the group's Coordinates
      */
     public Coordinates getCoordinates() { return coordinates; }
 
     /**
-     * Gets the creation date of the StudyGroup.
+     * Retrieves the creation timestamp of this StudyGroup.
      *
-     * @return The creation date of the StudyGroup.
+     * @return the creation LocalDateTime
      */
     public LocalDateTime getCreationDate() { return creationDate; }
 
     /**
-     * Gets the creation date of the StudyGroup as a formatted string.
+     * Returns a formatted creation date string in dd/MM/yyyy HH:mm:ss pattern.
      *
-     * @return The creation date as a string in the format dd/MM/yyyy HH:mm:ss.
+     * @return formatted creation date
      */
     public String getCreationDateString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -184,44 +201,44 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     }
 
     /**
-     * Gets the student count of the StudyGroup.
+     * Retrieves the student count for this StudyGroup.
      *
-     * @return The number of students in the StudyGroup.
+     * @return number of students in the group
      */
     public Integer getStudentCount() { return studentCount; }
 
     /**
-     * Remove all ids from Id list
+     * Clears all tracked IDs from the IDs map.
      */
     public static void clearIds() { IDs.clear(); }
 
     /**
-     * Gets the form of education of the StudyGroup.
+     * Retrieves the education form of this StudyGroup.
      *
-     * @return The form of education of the StudyGroup.
+     * @return the group's FormOfEducation
      */
     public FormOfEducation getFormOfEducation() { return formOfEducation; }
 
     /**
-     * Gets the semester of the StudyGroup.
+     * Retrieves the semester associated with this StudyGroup.
      *
-     * @return The semester of the StudyGroup.
+     * @return the group's Semester
      */
     public Semester getSemester() { return semester; }
 
     /**
-     * Gets the group admin of the StudyGroup.
+     * Retrieves the administrator of this StudyGroup.
      *
-     * @return The group admin of the StudyGroup.
+     * @return the group's Person admin
      */
     public Person getGroupAdmin() { return groupAdmin; }
 
     /**
-     * Formats a StudyGroup object into a CSV string representation.
-     * This string is formatted to match the required CSV structure for study group details.
+     * Formats the given StudyGroup into a CSV-compatible string.
+     * Fields are comma-separated and follow the study group CSV schema.
      *
-     * @param studyGroup the study group to format
-     * @return the formatted CSV string of the study group
+     * @param studyGroup the StudyGroup to format
+     * @return CSV string representation including newline
      */
     public static String formatStudyGroupToCSV(StudyGroup studyGroup) {
         return studyGroup.getId().toString() + "," + studyGroup.getName() + "," +

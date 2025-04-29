@@ -10,15 +10,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * Logging utility class for handling log messages.
- * This class provides methods to initialize, log, and create error messages in a log file.
+ * Utility class for writing diagnostic and error logs to a file.
+ * <p>
+ * Provides methods to initialize the log, append messages, and format exceptions
+ * with stack trace details. Logs are written to the path specified by
+ * {@link OutputFileSettings#getLoggingFilePath()}.
+ * </p>
  */
 public class Logging {
 
     /**
-     * Initializes the log file by deleting any existing file and writing an initialization message.
-     * This method will overwrite the existing log file if it already exists.
-     * If there is an error during initialization, it will be caught and printed as a message.
+     * Initializes the logging system by deleting any existing log file and creating a new one
+     * with an initialization header. If initialization fails, a console message is printed.
      */
     public static void initialize() {
         File file = new File(OutputFileSettings.getLoggingFilePath());
@@ -27,49 +30,52 @@ public class Logging {
         }
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(OutputFileSettings.getLoggingFilePath()), StandardCharsets.UTF_8)) {
-            writer.write("Logging Initialized \n");
+            writer.write("Logging initialized" + System.lineSeparator());
         } catch (Exception e) {
-            DistributionOfTheOutputStream.println("Logging error");
+            DistributionOfTheOutputStream.println("Logging error: could not initialize log file");
         }
     }
 
-
     /**
-     * Logs a message to the log file.
-     * If the log file does not exist, it will be initialized.
+     * Appends a log entry to the log file. If the log file does not exist, it is initialized first.
+     * <p>
+     * Each log entry is followed by a newline. I/O errors during logging will print
+     * a console message but will not interrupt application flow.
+     * </p>
      *
-     * @param message The message to be logged.
+     * @param message the log message to append
      */
     public static void log(String message) {
-
         File file = new File(OutputFileSettings.getLoggingFilePath());
-
         if (!file.exists()) {
             initialize();
         }
-
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(OutputFileSettings.getLoggingFilePath(), true), StandardCharsets.UTF_8)) {
             writer.write(message);
             writer.write(System.lineSeparator());
         } catch (Exception e) {
-            DistributionOfTheOutputStream.println("Logging error");
+            DistributionOfTheOutputStream.println("Logging error: could not write to log file");
         }
     }
 
     /**
-     * Creates an error message from a given stack trace.
-     * This method formats the stack trace and combines it with an error message string.
+     * Formats an error message including stack trace elements.
+     * <p>
+     * Prepends an "[ERROR] " tag to the provided message, then appends the
+     * stack trace elements in array form. Intended for use as input to {@link #log(String)}.
+     * </p>
      *
-     * @param stackTraceElements The stack trace elements to be included in the error message.
-     * @return A formatted error message string containing the error message and stack trace.
+     * @param errorMessage         the exception message or description
+     * @param stackTraceElements   the array of stack trace elements from an exception
+     * @return a composite string containing the error tag, message, and stack trace
      */
     public static String makeMessage(String errorMessage, StackTraceElement[] stackTraceElements) {
-        String[] strings = new String[stackTraceElements.length];
+        String[] traceLines = new String[stackTraceElements.length];
         for (int i = 0; i < stackTraceElements.length; i++) {
-            strings[i] = stackTraceElements[i].toString() + '\n';
+            traceLines[i] = stackTraceElements[i].toString();
         }
-        return "[ERROR] " + errorMessage + '\n' + Arrays.toString(strings) + '\n';
+        return "[ERROR] " + errorMessage + "\n" + Arrays.toString(traceLines);
     }
 
 }

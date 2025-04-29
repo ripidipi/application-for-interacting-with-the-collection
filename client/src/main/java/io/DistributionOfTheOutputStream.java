@@ -12,21 +12,30 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * This interface is responsible for managing the output stream for console and file outputs.
- * It allows printing messages either to the console or to a file, depending on the current execution mode.
- * If the script execution mode is active, messages are written to a file; otherwise, they are printed to the console.
+ * Manages application output, routing messages to the console or to a file
+ * depending on the current execution mode.
+ * <p>
+ * When script execution mode is active ({@link ExecuteScript#getExecuteScriptMode()}),
+ * output is appended to a file defined by {@link OutputFileSettings#getOutputFilePath()}.
+ * Otherwise, messages are printed directly to {@code System.out}.
+ * </p>
+ * <p>
+ * All file I/O errors automatically disable script mode and fall back to console output.
+ * </p>
  */
 public interface DistributionOfTheOutputStream {
 
     /**
-     * Clears the output file, if it exists.
-     * The output file is located at "data/output.txt".
+     * Deletes the existing output file to start fresh.
+     * Should be called before beginning script-based output.
+     * On failure, disables script mode.
      */
     static void clear() {
         try {
             File file = new File(OutputFileSettings.getOutputFilePath());
-            if (file.exists())
+            if (file.exists()) {
                 file.delete();
+            }
         } catch (Exception e) {
             System.out.println("Output to file error");
             ExecuteScript.setExecuteScriptMode(false);
@@ -34,35 +43,33 @@ public interface DistributionOfTheOutputStream {
     }
 
     /**
-     * Prints a message to the output. Depending on the execution mode, it either prints to the console
-     * or writes to a file.
-     *
-     * @param message The message to be printed or written.
+     * Prints a message followed by a newline to the active output target.
+     * @param message the message to print or write
      */
     static void println(String message) {
         if (ExecuteScript.getExecuteScriptMode()) {
             printlnToFile(message);
-        } else
+        } else {
             System.out.println(message);
+        }
     }
 
     /**
-     * Prints a message to the output without a newline. Depending on the execution mode, it either prints to the console
-     * or writes to a file.
-     *
-     * @param message The message to be printed or written.
+     * Prints a message without a newline to the active output target.
+     * @param message the message to print or write
      */
     static void print(String message) {
         if (ExecuteScript.getExecuteScriptMode()) {
             printToFile(message);
-        } else
+        } else {
             System.out.print(message);
+        }
     }
 
     /**
-     * Writes a message to the output file with a newline. The file is located at "data/output.txt".
-     *
-     * @param message The message to be written to the file.
+     * Appends a message plus newline to the output file.
+     * Disables script mode on failure.
+     * @param message the line to append
      */
     static void printlnToFile(String message) {
         String fileName = OutputFileSettings.getOutputFilePath();
@@ -77,9 +84,9 @@ public interface DistributionOfTheOutputStream {
     }
 
     /**
-     * Writes a message to the output file without a newline. The file is located at "data/output.txt".
-     *
-     * @param message The message to be written to the file.
+     * Appends a message without newline to the output file.
+     * Disables script mode on failure.
+     * @param message the text to append
      */
     static void printToFile(String message) {
         String fileName = OutputFileSettings.getOutputFilePath();
@@ -92,26 +99,33 @@ public interface DistributionOfTheOutputStream {
         }
     }
 
+    /**
+     * Processes a server response, splitting on marker tokens and routing
+     * parts tagged for console ("C#...") and file ("F#...").
+     * <p>
+     * Lines prefixed with "C#" are printed to console; those with "F#" are
+     * appended to the output file. If the response is null, prints an error.
+     * </p>
+     * @param response the raw response string from the server
+     */
     static void printFromServer(String response) {
         try {
             if (response == null) {
                 println("Problem with server response");
                 throw new NullPointerException("response is null");
             }
-            List<String> messageToConsole = Pattern.compile("##")
+            List<String> toConsole = Pattern.compile("##")
                     .splitAsStream(response)
                     .filter(line -> line.startsWith("C#"))
+                    .map(line -> line.substring(2))
                     .collect(Collectors.toList());
-            List<String> messageToFile = Pattern.compile("##")
+            List<String> toFile = Pattern.compile("##")
                     .splitAsStream(response)
                     .filter(line -> line.startsWith("F#"))
+                    .map(line -> line.substring(2))
                     .collect(Collectors.toList());
-            for (String message : messageToConsole) {
-                print(message.replace("C#", ""));
-            }
-            for (String message : messageToFile) {
-                printToFile(message.replace("F#", ""));
-            }
+            toConsole.forEach(System.out::print);
+            toFile.forEach(DistributionOfTheOutputStream::printToFile);
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }

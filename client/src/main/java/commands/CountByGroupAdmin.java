@@ -12,10 +12,19 @@ import io.DistributionOfTheOutputStream;
 import storage.Request;
 
 /**
- * Command that counts the number of study groups where a specified person is the admin from console.
+ * Command that counts the number of study groups administrated by a specified person.
+ * <p>Accepts person details via console or file input and returns a request for counting.</p>
  */
 public class CountByGroupAdmin implements Helpable, Command {
 
+    /**
+     * Executes the count_by_group_admin command by parsing a Person from input.
+     * <p>Validates that file-based input provides exactly four CSV fields.</p>
+     *
+     * @param arg the comma-separated person details (name,birthday,height,passportID)
+     * @param inputMode the input mode identifier ("F" for file, others for console/mixed)
+     * @return a Request with COUNT_BY_GROUP_ADMIN command and the parsed Person, or null on error
+     */
     @Override
     public Request<?> execute(String arg, String inputMode) {
         try {
@@ -38,6 +47,11 @@ public class CountByGroupAdmin implements Helpable, Command {
         return null;
     }
 
+    /**
+     * Provides help information for the count_by_group_admin command.
+     *
+     * @return a descriptive usage string for the command
+     */
     @Override
     public String getHelp() {
         return "Counts the number of study groups where the specified person is the admin.";

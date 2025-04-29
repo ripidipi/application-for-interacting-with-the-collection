@@ -4,23 +4,31 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Singleton class that manages the set of files currently in use.
- * Provides methods to add, remove, and check files in the set.
+ * Manages a global set of file names that represent scripts currently in execution.
+ * <p>
+ * Implements the singleton pattern to ensure a single shared registry of active files,
+ * preventing recursive or concurrent execution of the same script file.
+ * </p>
  */
 public class RunningFiles {
 
-    private Set<FileName> filesNames = new HashSet<>();
+    /** The set of file names currently active. */
+    private final Set<FileName> fileNames = new HashSet<>();
+
+    /** Singleton instance. */
     private static RunningFiles instance;
 
+    /**
+     * Private constructor to enforce singleton pattern.
+     */
     private RunningFiles() {}
 
     /**
-     * Returns the singleton instance of the RunningFiles class.
-     * If the instance does not exist, it creates one.
+     * Retrieves the singleton instance of {@code RunningFiles}, creating it if necessary.
      *
-     * @return the singleton instance of RunningFiles
+     * @return the shared {@code RunningFiles} instance
      */
-    public static RunningFiles getInstance() {
+    public static synchronized RunningFiles getInstance() {
         if (instance == null) {
             instance = new RunningFiles();
         }
@@ -28,39 +36,39 @@ public class RunningFiles {
     }
 
     /**
-     * Returns the set of file names that are currently being managed.
+     * Returns the set of currently registered file names.
      *
-     * @return a set containing the names of the files
+     * @return an unmodifiable view of the active file set
      */
-    public Set<FileName> getFilesNames() {
-        return filesNames;
+    public Set<FileName> getFileNames() {
+        return Set.copyOf(fileNames);
     }
 
     /**
-     * Adds a file name to the set of currently managed files.
+     * Registers a file name as active.
      *
-     * @param fileName the name of the file to add to the set
+     * @param fileName the {@link FileName} to add
      */
     public void addFileName(FileName fileName) {
-        this.filesNames.add(fileName);
+        fileNames.add(fileName);
     }
 
     /**
-     * Checks if a specific file is currently in the set of running files.
+     * Checks if a file name is already registered as active.
      *
-     * @param fileName the name of the file to check
-     * @return true if the file is present in the set, false otherwise
+     * @param fileName the {@link FileName} to check
+     * @return {@code true} if the file is active; {@code false} otherwise
      */
-    public boolean isThere(FileName fileName) {
-        return filesNames.contains(fileName);
+    public boolean contains(FileName fileName) {
+        return fileNames.contains(fileName);
     }
 
     /**
-     * Removes a file name from the set of running files.
+     * Unregisters a file name, marking it as no longer active.
      *
-     * @param fileName the name of the file to remove from the set
+     * @param fileName the {@link FileName} to remove
      */
     public void removeFileName(FileName fileName) {
-        this.filesNames.remove(fileName);
+        fileNames.remove(fileName);
     }
 }

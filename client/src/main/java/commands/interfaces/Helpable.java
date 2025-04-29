@@ -1,14 +1,15 @@
 package commands.interfaces;
 
 /**
- * Interface for commands that provide help information.
+ * Interface for commands that provide help information to users.
+ * Classes implementing this interface should supply usage details and descriptions.
  */
 public interface Helpable {
 
     /**
-     * Returns information about the command.
+     * Retrieves a help string describing command usage and functionality.
      *
-     * @return A string containing the help information about the command.
+     * @return a detailed help message for the command
      */
     String getHelp();
 

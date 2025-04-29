@@ -11,49 +11,70 @@ import java.util.Scanner;
 import static io.EnumTransform.TransformToEnum;
 
 /**
- * A utility class for reading enum values from user input.
- * It allows for the conversion of string input to enum constants and handles user prompts to ensure correct input.
+ * Utility for reading and validating enum values from standard input.
+ * <p>
+ * Prompts the user to enter a constant name of the specified enum type,
+ * converts the input string to the enum constant, and records the input
+ * for emergency rollback support.
+ * </p>
+ *
+ * @see EnumTransform#TransformToEnum(Class, String)
+ * @see SavingAnEmergencyStop
  */
 public class EnumInput {
 
-    final private static Scanner scanner = new Scanner(System.in);
+    /** Scanner for reading console input; shared across calls. */
+    private static final Scanner scanner = new Scanner(System.in);
 
     /**
-     * A helper method to assist with reading and converting user input into an enum constant.
+     * Prompts the user to enter a value matching one of the enum's constants,
+     * reads a line from the console, converts it to the enum constant, and
+     * returns the result.
+     * <p>
+     * Displays the enum's simple name followed by a list of allowed values.
+     * Exits the application if end-of-input is reached.
+     * </p>
      *
-     * @param enumType The enum class type that is expected to be received from the console.
-     * @param <T> The type of the enum.
-     * @return The enum constant corresponding to the user's input.
+     * @param enumType the {@code Class} object of the desired enum type
+     * @param <T>      the enum type
+     * @return the enum constant corresponding to the user input
+     * @throws RemoveOfTheNextSymbol if no input is available (EOF)
+     * @throws IncorrectConstant     if the entered string is not a valid constant name
      */
-    static <T extends Enum<T>> T inputAssistent(Class<T> enumType) {
-        T[] enumConstants = enumType.getEnumConstants();
-        ArrayList<String> enumValues = new ArrayList<>();
-        for (T constant : enumConstants) {
-            enumValues.add(constant.name());
+    static <T extends Enum<T>> T inputAssistant(Class<T> enumType) {
+        T[] constants = enumType.getEnumConstants();
+        ArrayList<String> names = new ArrayList<>();
+        for (T c : constants) {
+            names.add(c.name());
         }
-        DistributionOfTheOutputStream.print("Enter " + enumType.getSimpleName() + " " + enumValues.toString().trim().toLowerCase() + ": ");
+        DistributionOfTheOutputStream.print(
+                "Enter " + enumType.getSimpleName() + " " + names.toString().toLowerCase() + ": "
+        );
         if (!scanner.hasNextLine()) {
             new Exit().execute("", "");
-            throw new RemoveOfTheNextSymbol();
+            throw new RemoveOfTheNextSymbol("No more input");
         }
-        String input = scanner.nextLine().toUpperCase();
+        String input = scanner.nextLine().trim().toUpperCase();
         return TransformToEnum(enumType, input);
     }
 
     /**
-     * Reads an enum value from the console input.
-     * Prompts the user to enter a valid enum value and converts the input string to an enum constant.
+     * Reads an enum constant from the console, logs the selection for emergency rollback,
+     * and returns the value.
+     * <p>
+     * Internally calls {@link #inputAssistant(Class)} and appends the chosen name
+     * to the emergency-stop log via {@link SavingAnEmergencyStop}.
+     * </p>
      *
-     * @param enumType The enum class type that is expected to be received from the console.
-     * @param <T> The type of the enum.
-     * @return One of the constant enum values.
-     * @throws IncorrectConstant if the input is not a valid value from the enum.
+     * @param enumType the {@code Class} object of the desired enum type
+     * @param <T>      the enum type
+     * @return the enum constant selected by the user
+     * @throws IncorrectConstant     if the input does not match any constant name
+     * @throws RemoveOfTheNextSymbol if end-of-input is reached during prompt
      */
     public static <T extends Enum<T>> T inputFromConsole(Class<T> enumType) {
-        T result = inputAssistent(enumType);
+        T result = inputAssistant(enumType);
         SavingAnEmergencyStop.addStringToFile(result.name());
         return result;
     }
-
-
 }

@@ -12,15 +12,18 @@ import io.DistributionOfTheOutputStream;
 import storage.Request;
 
 /**
- * Command that adds a study group to the collection only if it is the largest from the console.
+ * Command that adds a study group to the collection only if it is strictly greater than the current maximum.
+ * <p>Parses and validates input to create a StudyGroup via StudyGroupFabric.</p>
  */
 public class AddIfMax implements Helpable, Command {
 
     /**
-     * Executes the AddIfMax command.
+     * Executes the add-if-max logic by creating a StudyGroup and sending an ADD_IF_MAX request.
+     * <p>On parsing or validation errors, prints messages or exits as appropriate.</p>
      *
-     * @param arg       the input arguments for creating a study group
-     * @param inputMode the input mode (e.g., console or file)
+     * @param arg the comma-separated arguments to construct the StudyGroup
+     * @param inputMode the input mode ("C", "M", "F", etc.) determining parsing strategy
+     * @return a Request with command ADD_IF_MAX and the constructed StudyGroup, or null on error
      */
     @Override
     public Request<?> execute(String arg, String inputMode) {
@@ -39,12 +42,12 @@ public class AddIfMax implements Helpable, Command {
     }
 
     /**
-     * Returns the help information for the command.
+     * Returns usage information for the AddIfMax command.
      *
-     * @return a string describing the command usage
+     * @return a help string describing the command's effect
      */
     @Override
     public String getHelp() {
-        return "Adds a new element to the collection if the element is larger than the maximum in the collection.";
+        return "Adds a new element to the collection if it is larger than the current maximum element.";
     }
 }

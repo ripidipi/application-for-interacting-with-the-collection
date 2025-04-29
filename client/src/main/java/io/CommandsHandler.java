@@ -16,21 +16,24 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
- * This class handles command input either from the console or from a file.
- * It processes the commands, checks their validity, and executes them accordingly.
+ * Processes user commands from console or file input and generates corresponding requests.
+ * <p>
+ * Validates authentication, command existence, and rule-based permissions before execution.
+ * Supports emergency save and rollback in case of errors.
+ * </p>
  */
 public class CommandsHandler {
 
     /**
-     * Checks if a given string can be converted to a valid {@link Commands} enum value.
+     * Checks whether the provided string corresponds to a valid {@link Commands} enum constant.
      *
-     * @param s the string to check
-     * @return true if the string corresponds to a valid command, false otherwise
+     * @param s the command name to validate
+     * @return {@code true} if {@code s} matches a defined command, {@code false} otherwise
      */
     private static boolean convertToEnum(String s) {
         try {
             if (s == null || s.trim().isEmpty()) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Command string is null or empty");
             }
             Enum.valueOf(Commands.class, s.toUpperCase());
             return true;
@@ -40,38 +43,56 @@ public class CommandsHandler {
     }
 
     /**
-     * Processes and executes a command if it is valid.
-     * If the command requires arguments, they are passed and executed accordingly.
+     * Validates and executes a command represented by an array of tokens.
+     * <p>
+     * Verifies user authentication, checks command existence, enforces rule-level restrictions,
+     * and builds a {@link Request} for the target command.
+     * In case of failure, prints errors or logs exceptions as appropriate.
+     * </p>
      *
-     * @param inputSplit an array containing the command and its arguments
-     * @param inputMode  the mode of input (e.g., console or file)
+     * @param inputSplit the first element is the command name; remaining elements are arguments
+     * @param inputMode  mode flag (e.g., "C" for console, "F" for file)
+     * @return a {@code Request<?>} ready for server interaction, or {@code null} on error
      */
     public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
+            // Ensure user is authenticated
             if (!Authentication.getInstance().isAuthenticated()) {
-                throw new UnauthorizedUser("");
+                throw new UnauthorizedUser("User must be authenticated");
             }
-            if (inputSplit.length != 0 && convertToEnum(inputSplit[0])) {
-                Commands command = Enum.valueOf(Commands.class, inputSplit[0].toUpperCase());
+
+            // Validate command name
+            if (inputSplit.length > 0 && convertToEnum(inputSplit[0])) {
+                Commands command = Commands.valueOf(inputSplit[0].toUpperCase());
+
+                // Enforce rule threshold: only rules < S allowed
                 if (new Rules.RulesComparator().compare(command.getRules(), Rules.S) >= 0) {
                     throw new IncorrectCommand(inputSplit[0]);
                 }
+
+                // Save command for emergency rollback
                 SavingAnEmergencyStop.addStringToFile(command.name());
-                Request<?> request;
-                if (inputSplit.length >= 2) {
-                    request = command.execute(String.join(",", Arrays.copyOfRange(inputSplit, 1, inputSplit.length)), inputMode);
-                } else {
-                    request = command.execute("", inputMode);
-                }
+
+                // Build and execute the request
+                String args = inputSplit.length > 1
+                        ? String.join(",", Arrays.copyOfRange(inputSplit, 1, inputSplit.length))
+                        : "";
+                Request<?> request = command.execute(args, inputMode);
+
+                // Clear emergency log on success
                 SavingAnEmergencyStop.clearFile();
                 return request;
+
             } else {
-                throw new IncorrectCommand(inputSplit[0]);
+                throw new IncorrectCommand(
+                        inputSplit.length > 0 ? inputSplit[0] : ""
+                );
             }
+
         } catch (UnauthorizedUser e) {
             DistributionOfTheOutputStream.println(e.getMessage());
             Authentication.askAuthentication();
-        }catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
@@ -80,22 +101,25 @@ public class CommandsHandler {
     }
 
     /**
-     * Reads and processes command input from the console.
-     * If a valid command is entered, it is executed accordingly.
+     * Reads a single line from the console, splits it into tokens, and processes it as a command.
+     * <p>
+     * On empty input or end-of-stream, exits the application.
+     * </p>
+     *
+     * @return a {@code Request<?>} if a valid command was entered; otherwise {@code null}
      */
     public static Request<?> input() {
-        try {
-            Scanner scanner = new Scanner(System.in);
+        try (Scanner scanner = new Scanner(System.in)) {
             if (!scanner.hasNextLine()) {
                 new Exit().execute("", "");
-                throw new RemoveOfTheNextSymbol();
+                throw new RemoveOfTheNextSymbol("No more input");
             }
-            String input = scanner.nextLine();
-            String[] inputSplit = input.split(" ");
+            String line = scanner.nextLine();
+            String[] tokens = line.split(" ");
+            return isCommand(tokens, "C");
 
-            return isCommand(inputSplit, "C");
         } catch (IllegalArgumentException e) {
-            DistributionOfTheOutputStream.println("Invalid input for command. Try again");
+            DistributionOfTheOutputStream.println("Invalid input for command. Try again.");
         } catch (RemoveOfTheNextSymbol e) {
             DistributionOfTheOutputStream.println(e.getMessage());
             Exit.exit();
@@ -106,38 +130,45 @@ public class CommandsHandler {
     }
 
     /**
-     * Reads and processes command input from a file.
-     * Each line of the file is parsed, and commands are executed based on the content.
+     * Reads commands line-by-line from a file and executes each.
+     * <p>
+     * Lines are split on commas; each invocation of {@link #isCommand} may print or log errors.
+     * Stops processing on {@link ServerDisconnect}.
+     * </p>
      *
-     * @param filePath the path to the input file
+     * @param filePath the path to the command script file
      */
     public static void inputFromFile(String filePath) {
         try {
             if (filePath == null || filePath.isEmpty()) {
-                throw new ConnectionToFileFailed("Connection to environment path failed " + filePath);
+                throw new ConnectionToFileFailed("Invalid file path: " + filePath);
             }
+
             File file = new File(filePath);
             if (!file.exists() || !file.isFile()) {
-                throw new ConnectionToFileFailed("File path doesn't found " + filePath);
+                throw new ConnectionToFileFailed("File not found: " + filePath);
             }
 
             try (Scanner scanner = new Scanner(file)) {
                 while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    String[] args = line.split(",");
                     try {
-                        String line = scanner.nextLine();
-                        String[] values = line.split(",");
-                        Request<?> request = isCommand(values, "F");
-                        if(request != null)
-                            DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
-                    } catch (ServerDisconnect _) {
+                        Request<?> request = isCommand(args, "F");
+                        if (request != null) {
+                            DistributionOfTheOutputStream.printFromServer(
+                                    Server.interaction(request)
+                            );
+                        }
+                    } catch (ServerDisconnect sd) {
+                        // Stop processing on server disconnect
                         return;
-                    }catch (Exception e) {
-                        Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                     }
                 }
-            } catch (FileNotFoundException e) {
-                Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+            } catch (FileNotFoundException fnf) {
+                Logging.log(Logging.makeMessage(fnf.getMessage(), fnf.getStackTrace()));
             }
+
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }

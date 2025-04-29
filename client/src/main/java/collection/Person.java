@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
- * Class representing a group admin (person) with their details.
- * It includes information like name, birthday, height, and passport ID.
+ * Class representing a group administrator with personal details.
+ * Includes name, birthday, height, and passport ID.
  */
 public record Person(String name, LocalDateTime birthday, Double height, String passportID)
         implements Serializable {
@@ -15,18 +15,18 @@ public record Person(String name, LocalDateTime birthday, Double height, String 
     private static final DateTimeFormatter BIRTHDAY_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     /**
-     * Formats and returns the birthday of the group admin as a string.
+     * Returns the birthday formatted as a string using the pattern dd/MM/yyyy.
      *
-     * @return the formatted birthday string in "dd/MM/yyyy" format.
+     * @return the formatted birthday string
      */
     public String getBirthdayString() {
         return birthday.format(BIRTHDAY_FORMATTER);
     }
 
     /**
-     * Converts the person object to a readable string format.
+     * Returns a string representation of the Person, including all fields.
      *
-     * @return a string representation of the group admin's details.
+     * @return a formatted string with name, formatted birthday, height, and passport ID
      */
     @Override
     public String toString() {
@@ -34,13 +34,15 @@ public record Person(String name, LocalDateTime birthday, Double height, String 
                 "name: " + name +
                 "\tbirthday: " + getBirthdayString() +
                 "\theight: " + (height == null ? "" : height) +
-                "\tpassportID: " + passportID + '}';
+                "\tpassportID: " + passportID +
+                '}';
     }
 
     /**
-     * Converts the height to a string, handling null values.
+     * Converts the height to its string representation.
+     * Returns a single space if height is null.
      *
-     * @return the height as a string or an empty string if null.
+     * @return height as string or space if null
      */
     public String heightToString() {
         return Optional.ofNullable(height)
@@ -48,6 +50,11 @@ public record Person(String name, LocalDateTime birthday, Double height, String 
                 .orElse(" ");
     }
 
+    /**
+     * Provides the formatter used for parsing and formatting birthdays.
+     *
+     * @return the DateTimeFormatter for birthdays
+     */
     public static DateTimeFormatter getBirthdayFormatter() {
         return BIRTHDAY_FORMATTER;
     }

@@ -4,44 +4,45 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * Represents coordinates (x, y) for a study group.
- * This class includes methods for input, validation, and conversion of coordinates.
+ * Represents two-dimensional coordinates for a study group, consisting of an x (Long) and y (Float) value.
+ * Provides methods to obtain string representations and handle null coordinates gracefully.
  */
 public record Coordinates(Long x, Float y) implements Serializable {
 
     /**
-     * Returns a string representation of the Coordinates object.
-     * It includes the x and y coordinates in a readable format.
+     * Returns a string representation of this Coordinates instance.
+     * The format includes labeled x and y values, using fallback empty space for nulls.
      *
-     * @return a string representation of the Coordinates object, displaying the x and y coordinates.
+     * @return a formatted string showing the x and y coordinate values
      */
     @Override
     public String toString() {
         return "Coordinates {" +
                 "x coordinate: " + xToString() +
-                "\ty coordinate: " + yToString() + '}';
+                "\t y coordinate: " + yToString() +
+                '}';
     }
 
     /**
-     * Converts the y coordinate to a string.
-     * If the y coordinate is null, returns an empty space string.
+     * Converts the x coordinate to its string representation.
+     * If the x value is null, returns a single space string.
      *
-     * @return string representation of the y coordinate or an empty space if null.
+     * @return the x coordinate as a string, or a space if x is null
      */
-    public String yToString() {
-        return Optional.ofNullable(y)
+    public String xToString() {
+        return Optional.ofNullable(x)
                 .map(Object::toString)
                 .orElse(" ");
     }
 
     /**
-     * Converts the x coordinate to a string.
-     * If the x coordinate is null, returns an empty space string.
+     * Converts the y coordinate to its string representation.
+     * If the y value is null, returns a single space string.
      *
-     * @return string representation of the x coordinate or an empty space if null.
+     * @return the y coordinate as a string, or a space if y is null
      */
-    public String xToString() {
-        return Optional.ofNullable(x)
+    public String yToString() {
+        return Optional.ofNullable(y)
                 .map(Object::toString)
                 .orElse(" ");
     }

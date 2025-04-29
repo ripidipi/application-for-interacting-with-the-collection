@@ -12,18 +12,27 @@ import io.DistributionOfTheOutputStream;
 import storage.Request;
 
 /**
- * Command that removes a study group by its group admin from console.
+ * Command that removes a study group by its group admin.
  * This command removes the first study group whose group admin matches the provided person.
  */
 public class RemoveAnyByGroupAdmin implements Helpable, Command {
 
+    /**
+     * Executes the RemoveAnyByGroupAdmin command.
+     * It parses the provided person and returns a request to remove the matching group.
+     *
+     * @param arg       the input data representing the person (group admin)
+     * @param inputMode the input mode (e.g., console or file)
+     * @return a request object containing the command type and the person as the argument,
+     *         or null if an error occurred
+     */
     @Override
     public Request<?> execute(String arg, String inputMode) {
         try {
             if (inputMode.equalsIgnoreCase("F")) {
                 String[] inputSplit = arg.split(",");
                 if (inputSplit.length != 4) {
-                    throw new InsufficientNumberOfArguments("CountByGroupAdmin");
+                    throw new InsufficientNumberOfArguments("RemoveAnyByGroupAdmin");
                 }
             }
             Person person = PersonFabric.getPersonFrom(arg, inputMode);
@@ -39,6 +48,11 @@ public class RemoveAnyByGroupAdmin implements Helpable, Command {
         return null;
     }
 
+    /**
+     * Returns help information for the RemoveAnyByGroupAdmin command.
+     *
+     * @return a string describing the purpose of the command
+     */
     @Override
     public String getHelp() {
         return "Removes the first study group with the specified group admin.";

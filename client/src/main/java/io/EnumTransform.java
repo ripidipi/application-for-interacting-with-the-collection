@@ -2,7 +2,7 @@ package io;
 
 import exceptions.IncorrectConstant;
 
-import static io.EnumInput.inputAssistent;
+import static io.EnumInput.inputAssistant;
 
 public class EnumTransform {
 
@@ -24,7 +24,7 @@ public class EnumTransform {
         } catch (IllegalArgumentException e) {
             DistributionOfTheOutputStream.println(new IncorrectConstant(enumType.getSimpleName()).getMessage());
         }
-        return inputAssistent(enumType);
+        return inputAssistant(enumType);
     }
 
 }

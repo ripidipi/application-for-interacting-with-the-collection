@@ -12,23 +12,27 @@ import io.DistributionOfTheOutputStream;
 import storage.Request;
 
 /**
- * Command for adding study groups to the collection from the console.
+ * Command for adding study groups to the collection via console or file input.
+ * <p>Supports validation of arguments and constructs a StudyGroup using StudyGroupFabric.</p>
  */
 public class Add implements Helpable, Command {
 
     /**
-     * Executes the add command.
+     * Executes the add command by parsing input arguments and creating a StudyGroup.
+     * <p>If inputMode is file-based ("F"), verifies the correct number of CSV fields.
+     * Any parsing or validation errors result in messaging or termination.</p>
      *
-     * @param arg       the input arguments for creating a study group
-     * @param inputMode the input mode (e.g., console or file)
+     * @param arg the comma-separated study group data
+     * @param inputMode the input mode identifier ("F" for file, others for interactive/mixed)
+     * @return a Request carrying the ADD command and the constructed StudyGroup, or null on error
      */
     @Override
     public Request<?> execute(String arg, String inputMode) {
         try {
             String[] inputSplit = arg.split(",");
-            if (inputMode.equalsIgnoreCase("F") &&
-                    StudyGroup.formatStudyGroupToCSV(StudyGroupFabric.getEmptyStudyGroup()).split(",").length
-                            != inputSplit.length) {
+            if (inputMode.equalsIgnoreCase("F")
+                    && StudyGroup.formatStudyGroupToCSV(StudyGroupFabric.getEmptyStudyGroup()).split(",").length
+                    != inputSplit.length) {
                 throw new InsufficientNumberOfArguments("Add");
             }
             StudyGroup studyGroup = StudyGroupFabric.getStudyGroupFrom(inputMode, inputSplit, false, false);
@@ -45,9 +49,9 @@ public class Add implements Helpable, Command {
     }
 
     /**
-     * Returns the help information for the command.
+     * Provides help information for the add command.
      *
-     * @return a string describing the command usage
+     * @return a descriptive usage string
      */
     @Override
     public String getHelp() {

@@ -9,26 +9,32 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Command that provides information about available commands.
- * This class is used to retrieve and display help information for all available commands in the system.
+ * Singleton command that provides help information about all available commands.
+ * Maintains a list of Helpable command instances and displays their usage information.
  */
 public class Help implements Helpable, Command {
 
+    /**
+     * List of registered commands providing help information.
+     */
     private static ArrayList<Helpable> commands;
+
+    /**
+     * Singleton instance of the Help command.
+     */
     private static Help instance;
 
     /**
-     * Private constructor to initialize the list of commands.
+     * Private constructor to initialize the commands list.
      */
-    Help() {
+    private Help() {
         commands = new ArrayList<>();
     }
 
     /**
-     * Returns the singleton instance of the Help class.
-     * If the instance is not yet created, it initializes a new instance.
+     * Returns the singleton instance of Help, creating it if necessary.
      *
-     * @return The singleton instance of the Help class.
+     * @return the Help singleton instance
      */
     public static Help getInstance() {
         if (instance == null) {
@@ -38,34 +44,49 @@ public class Help implements Helpable, Command {
     }
 
     /**
-     * Displays information about all available commands.
-     * Each command's name and description are printed to the output stream.
+     * Prints help information for all registered commands to the output stream.
+     * Each command's simple class name is split at camel-case boundaries for display,
+     * followed by its help description.
      */
     public static void help() {
         for (Helpable command : commands) {
-            DistributionOfTheOutputStream.println(String.join("_",
-                    command.getClass().getSimpleName().split("(?=[A-Z])")));
+            String commandName = String.join("_",
+                    command.getClass().getSimpleName().split("(?=[A-Z])"));
+            DistributionOfTheOutputStream.println(commandName);
             DistributionOfTheOutputStream.println("\t" + command.getHelp());
         }
     }
 
     /**
-     * Adds commands to the list of supported commands.
-     * The commands added will be available to display in the help section.
+     * Registers one or more Helpable commands to the help list.
+     * These commands will be included in the output of {@link #help()}.
      *
-     * @param commandArgs array of supporting commands.
+     * @param commandArgs varargs of commands to register
      */
     public void addCommand(Helpable... commandArgs) {
         Collections.addAll(commands, commandArgs);
     }
 
+    /**
+     * Returns a Request object representing the HELP command.
+     * This method fulfills the Command interface contract.
+     *
+     * @param arg unused argument string
+     * @param inputMode unused input mode identifier
+     * @return a Request with Commands.HELP and null payload
+     */
     @Override
     public Request<?> execute(String arg, String inputMode) {
-        return new Request<>(Commands.HELP, (Void)null);
+        return new Request<>(Commands.HELP, (Void) null);
     }
 
+    /**
+     * Provides help information for the HELP command itself.
+     *
+     * @return a brief description of the HELP functionality
+     */
     @Override
     public String getHelp() {
-        return "Returns information about commands.";
+        return "Returns information about available commands.";
     }
 }
