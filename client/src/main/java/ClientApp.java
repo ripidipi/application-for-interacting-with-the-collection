@@ -1,6 +1,6 @@
 import commands.Exit;
 import exceptions.RemoveOfTheNextSymbol;
-import io.Authentication;
+import exceptions.ServerDisconnect;
 import io.CommandsHandler;
 import io.DistributionOfTheOutputStream;
 import io.Server;
@@ -9,8 +9,6 @@ import storage.Request;
 import storage.RunningFiles;
 import storage.SavingAnEmergencyStop;
 
-import java.net.*;
-import java.nio.channels.DatagramChannel;
 import java.util.Scanner;
 
 public class ClientApp {
@@ -30,9 +28,8 @@ public class ClientApp {
                     DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
                 }
             }
-        } catch (PortUnreachableException e) {
-            DistributionOfTheOutputStream.println("Problem to connect to the server.");
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {}
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         } finally {
             System.out.println("End of work");

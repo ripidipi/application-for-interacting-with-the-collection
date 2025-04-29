@@ -1,6 +1,7 @@
 package storage;
 
 import collection.*;
+import io.DistributionOfTheOutputStream;
 
 import java.io.InputStream;
 import java.sql.*;
@@ -127,6 +128,8 @@ public class DBManager {
             return true;
         } catch (SQLException e) {
             System.out.println("Error checking user existence: " + e.getMessage());
+            DistributionOfTheOutputStream.println("User with that username already exists: " + username  +
+                    " or exist different problem. Pleas try another username or password.");
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
             return false;
         }

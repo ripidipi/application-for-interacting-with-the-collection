@@ -39,6 +39,7 @@
         </plugins>
 
         <resources>
+
             <resource>
                 <directory>data</directory>
                 <targetPath>${project.build.outputDirectory}/data</targetPath>
@@ -46,6 +47,12 @@
                     <include>**/*</include>
                 </includes>
             </resource>
+
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+
         </resources>
     </build>
 </project>

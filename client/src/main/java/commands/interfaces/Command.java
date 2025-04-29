@@ -1,6 +1,7 @@
 package commands.interfaces;
 
 import commands.Commands;
+import exceptions.ServerDisconnect;
 import io.Server;
 import storage.Logging;
 import storage.Request;
@@ -19,7 +20,10 @@ public interface Command {
             String response = Server.interaction(new Request<>(Commands.CHECK_IS_WITH_ID, id));
             if (response == null) {return false;}
             return !response.contains("true");
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {
+            return false;
+        }
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
         return true;

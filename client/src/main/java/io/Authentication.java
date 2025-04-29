@@ -2,16 +2,19 @@ package io;
 
 import commands.Commands;
 import commands.Exit;
+import exceptions.IncorrectConstant;
+import exceptions.IncorrectValue;
+import exceptions.ServerDisconnect;
 import exceptions.UnauthorizedUser;
 import storage.Logging;
 import storage.Request;
 
-import java.net.InetSocketAddress;
-import java.nio.channels.DatagramChannel;
+import java.io.Console;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -50,11 +53,15 @@ public class Authentication {
         }
         try {
             return Objects.requireNonNull(Server.interaction(new Request<>(Commands.CHECK_AUTHENTICATION, null))).contains("true");
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {return false;}
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
         System.out.println("Authentication" + (result ? " successfully" : " unsuccessfully"));
-        if (!result) Exit.exit();
+        if (!result) {
+            Exit.exit();
+            return false;
+        }
         return true;
     }
 
@@ -83,14 +90,24 @@ public class Authentication {
         askUser();
         try {
              DistributionOfTheOutputStream.printFromServer(Server.interaction(new Request<>(Commands.ADD_USER, null)));
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {}
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
     }
 
     public static void askUser() throws Exception {
-        String username = PrimitiveDataInput.input("Username", String.class);
-        String password = PrimitiveDataInput.input("Password", String.class);
+        Console console = System.console();
+        if (console == null) {
+            throw new RuntimeException("Console not available");
+        }
+        String username = console.readLine("Username: ");
+        char[] pwdChars = console.readPassword("Password: ");
+        if (username == null || username.isEmpty()) {
+            throw new IncorrectConstant("Username or password");
+        }
+        String password = new String(pwdChars);
+        Arrays.fill(pwdChars, ' ');
         instance = new Authentication(username, makeHash(password));
     }
 

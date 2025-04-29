@@ -1,6 +1,7 @@
 package storage;
 
 import commands.Commands;
+import exceptions.ServerDisconnect;
 import io.DistributionOfTheOutputStream;
 import io.OutputFileSettings;
 import io.Server;
@@ -72,7 +73,8 @@ public class SavingAnEmergencyStop {
     public static void sentRequestToServer(Request<?> request) {
         try {
             DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {}
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
     }

@@ -1,8 +1,7 @@
 package io;
 
-import exceptions.ConnectionToFileFailed;
-import exceptions.IncorrectCommand;
-import exceptions.RemoveOfTheNextSymbol;
+import commands.Rules;
+import exceptions.*;
 import storage.Logging;
 import storage.Request;
 import storage.SavingAnEmergencyStop;
@@ -49,8 +48,14 @@ public class CommandsHandler {
      */
     public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
-            if (inputSplit.length != 0 && convertToEnum(inputSplit[0]) && Authentication.getInstance().isAuthenticated()) {
+            if (!Authentication.getInstance().isAuthenticated()) {
+                throw new UnauthorizedUser("");
+            }
+            if (inputSplit.length != 0 && convertToEnum(inputSplit[0])) {
                 Commands command = Enum.valueOf(Commands.class, inputSplit[0].toUpperCase());
+                if (new Rules.RulesComparator().compare(command.getRules(), Rules.S) >= 0) {
+                    throw new IncorrectCommand(inputSplit[0]);
+                }
                 SavingAnEmergencyStop.addStringToFile(command.name());
                 Request<?> request;
                 if (inputSplit.length >= 2) {
@@ -63,7 +68,10 @@ public class CommandsHandler {
             } else {
                 throw new IncorrectCommand(inputSplit[0]);
             }
-        } catch (RuntimeException e) {
+        } catch (UnauthorizedUser e) {
+            DistributionOfTheOutputStream.println(e.getMessage());
+            Authentication.askAuthentication();
+        }catch (RuntimeException e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
@@ -121,7 +129,9 @@ public class CommandsHandler {
                         Request<?> request = isCommand(values, "F");
                         if(request != null)
                             DistributionOfTheOutputStream.printFromServer(Server.interaction(request));
-                    } catch (Exception e) {
+                    } catch (ServerDisconnect _) {
+                        return;
+                    }catch (Exception e) {
                         Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
                     }
                 }

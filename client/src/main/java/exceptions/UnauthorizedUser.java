@@ -6,7 +6,5 @@ public class UnauthorizedUser extends RuntimeException {
     }
 
     @Override
-    public String getMessage() {
-        return super.getMessage() + " Unauthorized user unable to work in the system";
-    }
+    public String getMessage() { return "Unauthorized user unable to work in the system";}
 }

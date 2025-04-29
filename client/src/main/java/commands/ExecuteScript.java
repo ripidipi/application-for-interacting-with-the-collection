@@ -1,5 +1,6 @@
 package commands;
 
+import exceptions.ServerDisconnect;
 import io.Authentication;
 import io.Server;
 import storage.FileName;
@@ -46,7 +47,8 @@ public class ExecuteScript implements Helpable, Command {
 
             CommandsHandler.inputFromFile(fileName);
 
-        } catch (IncorrectValue | InfiniteRecursion e) {
+        } catch (ServerDisconnect _) {}
+        catch (IncorrectValue | InfiniteRecursion e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
