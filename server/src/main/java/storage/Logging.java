@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 /**
@@ -45,6 +46,8 @@ public class Logging {
      * @param message The message to be logged.
      */
     public static void log(String message) {
+
+        System.out.println(String.format("[%s] %s", LocalDateTime.now(), message));
 
         File file = new File(fileName);
 

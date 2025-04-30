@@ -24,6 +24,8 @@ import java.util.Scanner;
  */
 public class CommandsHandler {
 
+    private static final Scanner scanner = new Scanner(System.in);
+
     /**
      * Checks whether the provided string corresponds to a valid {@link Commands} enum constant.
      *
@@ -103,10 +105,10 @@ public class CommandsHandler {
      * @return a {@code Request<?>} if a valid command was entered; otherwise {@code null}
      */
     public static Request<?> input() {
-        try (Scanner scanner = new Scanner(System.in)) {
+        try  {
             if (!scanner.hasNextLine()) {
-                new Exit().execute("", "");
-                throw new RemoveOfTheNextSymbol("No more input");
+                Server.interaction(new Exit().execute("", ""));
+                throw new RemoveOfTheNextSymbol("");
             }
             String line = scanner.nextLine();
             String[] tokens = line.split(" ");

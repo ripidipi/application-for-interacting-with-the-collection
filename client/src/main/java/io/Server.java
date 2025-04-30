@@ -82,7 +82,7 @@ public class Server {
                     Exit.exit();
                     throw new ServerDisconnect("Response timeout");
                 }
-                Thread.sleep(10);
+                Thread.sleep(5);
                 client.read(recv);
             }
             recv.flip();
