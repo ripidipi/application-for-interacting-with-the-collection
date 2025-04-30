@@ -112,9 +112,8 @@ public class SavingAnEmergencyStop {
             DistributionOfTheOutputStream.printFromServer(
                     Server.interaction(request)
             );
-        } catch (ServerDisconnect sd) {
-            // Ignore disconnect during emergency recovery
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {}
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
     }

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Server {
 
-    private static final int SERVER_PORT = 6611;
+    private static final int SERVER_PORT = 6666;
     private static final int TREADS_QUANTITY = 5;
 
     public static int getServerPort() {

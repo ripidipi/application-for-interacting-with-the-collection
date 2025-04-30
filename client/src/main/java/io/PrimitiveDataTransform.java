@@ -103,7 +103,6 @@ public class PrimitiveDataTransform {
         if (fileMode) {
             return null;
         }
-        // Interactive mode: reprompt
         return inputAssistant(name, type, emptyLineCheck,
                 zeroValueCheck, dateInTheFutureCheck, formatter);
     }

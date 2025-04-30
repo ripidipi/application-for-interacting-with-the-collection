@@ -56,30 +56,24 @@ public class CommandsHandler {
      */
     public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
-            // Ensure user is authenticated
             if (!Authentication.getInstance().isAuthenticated()) {
                 throw new UnauthorizedUser("User must be authenticated");
             }
 
-            // Validate command name
             if (inputSplit.length > 0 && convertToEnum(inputSplit[0])) {
                 Commands command = Commands.valueOf(inputSplit[0].toUpperCase());
 
-                // Enforce rule threshold: only rules < S allowed
                 if (new Rules.RulesComparator().compare(command.getRules(), Rules.S) >= 0) {
                     throw new IncorrectCommand(inputSplit[0]);
                 }
 
-                // Save command for emergency rollback
                 SavingAnEmergencyStop.addStringToFile(command.name());
 
-                // Build and execute the request
                 String args = inputSplit.length > 1
                         ? String.join(",", Arrays.copyOfRange(inputSplit, 1, inputSplit.length))
                         : "";
                 Request<?> request = command.execute(args, inputMode);
 
-                // Clear emergency log on success
                 SavingAnEmergencyStop.clearFile();
                 return request;
 
@@ -161,7 +155,6 @@ public class CommandsHandler {
                             );
                         }
                     } catch (ServerDisconnect sd) {
-                        // Stop processing on server disconnect
                         return;
                     }
                 }

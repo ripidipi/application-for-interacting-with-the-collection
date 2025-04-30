@@ -35,7 +35,9 @@ public enum Commands {
      */
     CHECK_IS_WITH_ID(null, Rules.S),
 
-    /** CHECK_AUTHENTICATION : internal command to verify user credentials */
+    /** CHECK_AUTHENTICATION : internal command to verify user credentials
+     * <p>Not available to regular users.</p>
+     */
     CHECK_AUTHENTICATION(null, Rules.S),
 
     /**
@@ -44,7 +46,9 @@ public enum Commands {
      */
     EXECUTE_SCRIPT(new ExecuteScript(), Rules.U),
 
-    /** ADD_USER : internal command to add a new user account */
+    /** ADD_USER : internal command to add a new user account
+     * <p>Not available to regular users.</p>
+     */
     ADD_USER(null, Rules.S),
 
     /** exit : terminate the program (without saving to file) */
@@ -66,7 +70,12 @@ public enum Commands {
     GROUP_COUNTING_BY_ID(new GroupCountingById(), Rules.U),
 
     /** count_by_group_admin groupAdmin : show number of elements matching the given group admin */
-    COUNT_BY_GROUP_ADMIN(new CountByGroupAdmin(), Rules.U);
+    COUNT_BY_GROUP_ADMIN(new CountByGroupAdmin(), Rules.U),
+
+    /** Checks connection with the server via handshake message exchange
+     * <p>Not available to regular users.</p>
+     */
+    HANDSHAKE(null, Rules.S);
 
     private final Command command;
     private final Rules rules;

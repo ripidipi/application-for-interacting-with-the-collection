@@ -44,17 +44,17 @@ public class PersonFabric {
         LocalDateTime birthday = PrimitiveDataInput.input(
                 "birthday data in format DD.MM.YYYY",
                 LocalDateTime.class,
-                /* canBeNull */ false,
-                /* allowFraction */ false,
-                /* allowMinus */ true,
+                /* can'tBeEmpty */ false,
+                /* NotAllowZero */ false,
+                /* NotAllowDateInTheFuture */ true,
                 /* formatter */ DateTimeFormatter.ofPattern("dd.MM.yyyy")
         );
         Double height = PrimitiveDataInput.input(
                 "height", Double.class,
-                /* canBeNull */ false,
-                /* allowFraction */ true,
-                /* allowMinus */ false,
-                /* defaultValue */ null
+                /* can'tBeEmpty */ false,
+                /* NotAllowZero */ true,
+                /* NotAllowDateInTheFuture */ false,
+                /* formatter */ null
         );
         String passportID = PrimitiveDataInput.input("passportID", String.class);
         return new Person(name, birthday, height, passportID);
@@ -76,20 +76,20 @@ public class PersonFabric {
                 PrimitiveDataInput.inputFromFile(
                         "adminBirthday", birthday,
                         LocalDateTime.class,
-                        /* canBeNull */ false,
-                        /* allowFraction */ false,
-                        /* allowMinus */ true,
+                        /* can'tBeEmpty */ false,
+                        /* NotAllowZero */ false,
+                        /* NotAllowDateInTheFuture */ true,
                         /* formatter */ Person.getBirthdayFormatter(),
-                        /* fromFile */ false
+                        /* muteMode */ false
                 ),
                 PrimitiveDataInput.inputFromFile(
                         "adminHeight", height,
                         Double.class,
-                        /* canBeNull */ false,
-                        /* allowFraction */ true,
-                        /* allowMinus */ false,
-                        /* defaultValue */ null,
-                        /* fromFile */ false
+                        /* can'tBeEmpty */ false,
+                        /* NotAllowZero */ true,
+                        /* NotAllowDateInTheFuture */ false,
+                        /* formatter */ null,
+                        /* muteMode */ false
                 ),
                 PrimitiveDataInput.inputFromFile("adminPassportID", passportID, String.class)
         );
@@ -123,18 +123,18 @@ public class PersonFabric {
         LocalDateTime birthday = (index < inputSplit.length)
                 ? PrimitiveDataInput.inputFromFile(
                 "adminBirthday", inputSplit[index++], LocalDateTime.class,
-                /* canBeNull */ false,
-                /* allowFraction */ false,
-                /* allowMinus */ true,
+                /* can'tBeEmpty */ false,
+                /* NotAllowZero */ false,
+                /* NotAllowDateInTheFuture */ true,
                 /* formatter */ DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"),
-                /* fromFile */ false
+                /* muteMode */ false
         )
                 : PrimitiveDataInput.input(
                 "admin birthday data in format DD.MM.YYYY",
                 LocalDateTime.class,
-                /* canBeNull */ false,
-                /* allowFraction */ false,
-                /* allowMinus */ true,
+                /* can'tBeEmpty */ false,
+                /* NotAllowZero */ false,
+                /* NotAllowDateInTheFuture */ true,
                 /* formatter */ DateTimeFormatter.ofPattern("dd.MM.yyyy")
         );
 
@@ -143,11 +143,11 @@ public class PersonFabric {
                 ? null
                 : PrimitiveDataInput.inputFromFile(
                 "adminHeight", inputSplit[index], Double.class,
-                /* canBeNull */ false,
-                /* allowFraction */ true,
-                /* allowMinus */ false,
-                /* defaultValue */ null,
-                /* fromFile */ false
+                /* can'tBeEmpty */ false,
+                /* NotAllowZero */ true,
+                /* NotAllowDateInTheFuture */ false,
+                /* formatter */ null,
+                /* muteMode */ false
         )
         )
                 : PrimitiveDataInput.input("admin height", Double.class, false, true, false, null);

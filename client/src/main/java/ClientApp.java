@@ -2,10 +2,7 @@ import commands.Exit;
 import exceptions.RemoveOfTheNextSymbol;
 import exceptions.ServerDisconnect;
 import exceptions.UnauthorizedUser;
-import io.Authentication;
-import io.CommandsHandler;
-import io.DistributionOfTheOutputStream;
-import io.Server;
+import io.*;
 import storage.Logging;
 import storage.Request;
 import storage.RunningFiles;
@@ -76,6 +73,7 @@ public class ClientApp {
      */
     private static void runPreviousSession() {
         try {
+            Handshake.makeHandshake();
             System.out.println("Previous session was interrupted. Enter 'Yes' to resume:");
             if (!scanner.hasNextLine()) {
                 new Exit().execute("", "");
@@ -88,7 +86,9 @@ public class ClientApp {
                 }
                 SavingAnEmergencyStop.recapCommandFromFile();
             }
-        } catch (RemoveOfTheNextSymbol e) {
+        } catch (ServerDisconnect e) {
+            System.out.println(e.getMessage());
+        }catch (RemoveOfTheNextSymbol e) {
             System.out.println(e.getMessage());
             Exit.exit();
         } catch (Exception e) {
@@ -102,7 +102,7 @@ public class ClientApp {
      */
     public static void runCommandLoop() {
         try {
-            while (Exit.running) {
+            while (Exit.running && Handshake.makeHandshake()) {
                 System.out.print("Enter the command: ");
                 Request<?> request = CommandsHandler.input();
                 if (request != null) {
@@ -111,9 +111,9 @@ public class ClientApp {
                     );
                 }
             }
-        } catch (ServerDisconnect sd) {
-            // Server disconnected during command loop; exit gracefully
-        } catch (Exception e) {
+        } catch (ServerDisconnect e) {
+            System.out.println(e.getMessage());
+        }catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         } finally {
             System.out.println("End of work");

@@ -26,9 +26,9 @@ import java.nio.charset.StandardCharsets;
 public class Server {
 
     /** Default server hostname. */
-    private static final String SERVER_HOST = "helios.cs.ifmo.ru";
+    private static final String SERVER_HOST = "127.0.0.1"; // helios.cs.ifmo.ru    127.0.0.1
     /** Default server port number. */
-    private static final int SERVER_PORT = 6611;
+    private static final int SERVER_PORT = 6666;
 
     /**
      * Returns the configured server hostname.
@@ -65,18 +65,15 @@ public class Server {
             client.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
             client.configureBlocking(false);
 
-            // Serialize request to byte array
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try (ObjectOutputStream oout = new ObjectOutputStream(bout)) {
                 oout.writeObject(request);
             }
             byte[] bytes = bout.toByteArray();
 
-            // Send the request
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             client.write(buffer);
 
-            // Prepare buffer for response
             ByteBuffer recv = ByteBuffer.allocate(4096);
             long deadline = System.currentTimeMillis() + 3000;
             while (recv.position() == 0) {
@@ -94,10 +91,8 @@ public class Server {
         } catch (ServerDisconnect e) {
             throw e;
         } catch (Exception e) {
-            // Log unexpected errors
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
-        // If execution reaches here, treat as disconnect
         throw new ServerDisconnect("Communication failure");
     }
 }

@@ -59,7 +59,11 @@ public enum Commands {
 
     ADD_USER(new AddUser()),
 
+    HANDSHAKE(new Handshake()),
+
     CHECK_AUTHENTICATION(new CheckAuthentication());
+
+
 
     private final Command<?> command;
 

@@ -157,9 +157,8 @@ public class Authentication {
             DistributionOfTheOutputStream.printFromServer(
                     Server.interaction(new Request<>(Commands.ADD_USER, null))
             );
-        } catch (ServerDisconnect _) {
-            // ignore server disconnect during sign-up
-        } catch (Exception e) {
+        } catch (ServerDisconnect _) {}
+        catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
     }

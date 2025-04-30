@@ -55,16 +55,11 @@ public class Update implements Helpable, Command {
             return new Request<>(Commands.UPDATE, studyGroup);
 
         } catch (RemoveOfTheNextSymbol e) {
-            // Critical parsing error: terminate application after reporting
             DistributionOfTheOutputStream.println(e.getMessage());
             Exit.exit();
-
         } catch (RuntimeException e) {
-            // Non-critical error (e.g., ID not found): report to user
             DistributionOfTheOutputStream.println(e.getMessage());
-
         } catch (Exception e) {
-            // Unexpected error: log for diagnostics
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
 
