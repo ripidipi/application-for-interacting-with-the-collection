@@ -28,7 +28,7 @@ public class Server {
     /** Default server hostname. */
     private static final String SERVER_HOST = "127.0.0.1"; // helios.cs.ifmo.ru    127.0.0.1
     /** Default server port number. */
-    private static final int SERVER_PORT = 6666;
+    private static final int SERVER_PORT = 6600;
 
     /**
      * Returns the configured server hostname.

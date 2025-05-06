@@ -30,7 +30,6 @@ public class Update implements Helpable, Command<StudyGroup> {
             lock.lock();
             if (!CheckIsWithId.validateId(studyGroup.getId())) {
                 DistributionOfTheOutputStream.println("No objects with this id in the database");
-                lock.unlock();
                 return;
             }
             boolean updated = updateInDatabase(studyGroup, auth.name());

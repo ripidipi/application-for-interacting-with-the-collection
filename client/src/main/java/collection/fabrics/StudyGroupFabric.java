@@ -85,7 +85,7 @@ public class StudyGroupFabric {
      */
     public static StudyGroup inputFromFile(String[] inputSplit, boolean notAdded) {
         try {
-            Integer id = PrimitiveDataInput.inputFromFile("id", inputSplit[0], Integer.class);
+            Integer id = generateId();
             String name = PrimitiveDataInput.inputFromFile("name", inputSplit[1], String.class);
             Coordinates coordinates = CoordinatesFabric.inputFromFile(inputSplit[2], inputSplit[3]);
             Integer studentCount = PrimitiveDataInput.inputFromFile("students count", inputSplit[4], Integer.class);
@@ -291,6 +291,9 @@ public class StudyGroupFabric {
             studyGroup = StudyGroupFabric.getStudyGroupFrom(
                     inputMode, inputSplit, false, true
             );
+        }
+        if (!isRightFill(studyGroup)) {
+            throw new IncorrectValue(arg);
         }
         return studyGroup;
     }

@@ -49,9 +49,8 @@ public class ExecuteScript implements Helpable, Command {
                     Server.interaction(new Request<>(Commands.EXECUTE_SCRIPT, null))
             );
             CommandsHandler.inputFromFile(fileName);
-        } catch (ServerDisconnect _) {
-            // Server disconnected during script execution
-        } catch (IncorrectValue | InfiniteRecursion e) {
+        } catch (ServerDisconnect e) {}
+        catch (IncorrectValue | InfiniteRecursion e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));

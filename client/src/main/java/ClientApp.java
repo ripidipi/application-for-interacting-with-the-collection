@@ -49,6 +49,7 @@ public class ClientApp {
      * Initializes logging, running-files registry, emergency-stop recovery, and output file.
      */
     private static void initialize() {
+        Authentication.getInstance();
         Logging.initialize();
         RunningFiles.getInstance();
         checkPreviousSession();
@@ -81,7 +82,7 @@ public class ClientApp {
             }
             String input = scanner.nextLine();
             if ("yes".equalsIgnoreCase(input)) {
-                if (!Authentication.getInstance().isAuthenticated()) {
+                if (Authentication.getInstance().isNotAuthenticated(true)) {
                     throw new UnauthorizedUser("User not authenticated for recovery");
                 }
                 SavingAnEmergencyStop.recapCommandFromFile();

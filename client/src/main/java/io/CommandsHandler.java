@@ -10,8 +10,6 @@ import commands.Exit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.InetSocketAddress;
-import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -58,7 +56,7 @@ public class CommandsHandler {
      */
     public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
-            if (!Authentication.getInstance().isAuthenticated()) {
+            if (Authentication.getInstance().isNotAuthenticated(true)) {
                 throw new UnauthorizedUser("User must be authenticated");
             }
 
@@ -156,7 +154,7 @@ public class CommandsHandler {
                                     Server.interaction(request)
                             );
                         }
-                    } catch (ServerDisconnect sd) {
+                    } catch (ServerDisconnect e) {
                         return;
                     }
                 }

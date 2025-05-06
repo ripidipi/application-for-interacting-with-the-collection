@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Server {
 
-    private static final int SERVER_PORT = 6666;
+    private static final int SERVER_PORT = 6600;
     private static final int TREADS_QUANTITY = 5;
 
     public static int getServerPort() {
@@ -41,7 +41,13 @@ public class Server {
 
     public static void sendResponse(DatagramChannel server,SocketAddress address) throws IOException {
         String response = PreparingOfOutputStream.getOutMessage();
-        ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8));
-        server.send(responseBuffer, address);
+        int CHUNK_SIZE = 100000;
+        while (!response.isEmpty()) {
+            int len = Math.min(CHUNK_SIZE, response.length());
+            String sentMessage = response.substring(0, len);
+            ByteBuffer buf = ByteBuffer.wrap(sentMessage.getBytes(StandardCharsets.UTF_8));
+            server.send(buf, address);
+            response = response.substring(len);
+        }
     }
 }

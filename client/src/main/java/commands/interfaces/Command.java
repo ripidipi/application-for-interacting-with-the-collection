@@ -33,7 +33,7 @@ public interface Command {
                 return false;
             }
             return !response.contains("true");
-        } catch (ServerDisconnect _) {
+        } catch (ServerDisconnect e) {
             return false;
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));

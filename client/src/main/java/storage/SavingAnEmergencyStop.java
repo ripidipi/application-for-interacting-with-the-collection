@@ -67,7 +67,7 @@ public class SavingAnEmergencyStop {
                 line = line.substring(0, line.length() - 1);
             }
             String[] values = line.split(",");
-            return values.length > 0;
+            return values.length > 1;
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
@@ -112,7 +112,7 @@ public class SavingAnEmergencyStop {
             DistributionOfTheOutputStream.printFromServer(
                     Server.interaction(request)
             );
-        } catch (ServerDisconnect _) {}
+        } catch (ServerDisconnect e) {}
         catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }

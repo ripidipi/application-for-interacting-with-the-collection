@@ -3,9 +3,7 @@ package io;
 import commands.Commands;
 import commands.Exit;
 import exceptions.IncorrectConstant;
-import exceptions.IncorrectValue;
 import exceptions.ServerDisconnect;
-import exceptions.UnauthorizedUser;
 import storage.Logging;
 import storage.Request;
 
@@ -90,26 +88,27 @@ public class Authentication {
      *
      * @return {@code true} if the server confirms authentication; {@code false} otherwise
      */
-    public boolean isAuthenticated() {
+    public boolean isNotAuthenticated(boolean muteMode) {
         if (instance == null) {
             System.out.println("Authentication unsuccessfully");
             Exit.exit();
-            return false;
+            return true;
         }
         try {
             boolean result = Objects.requireNonNull(
                     Server.interaction(new Request<>(Commands.CHECK_AUTHENTICATION, null))
             ).contains("true");
-            System.out.println("Authentication" + (result ? " successfully" : " unsuccessfully"));
+            if (!muteMode)
+                System.out.println("Authentication" + (result ? " successfully" : " unsuccessfully"));
             if (!result) {
                 Exit.exit();
             }
-            return result;
-        } catch (ServerDisconnect _) {
-            return false;
+            return !result;
+        } catch (ServerDisconnect e) {
+            return true;
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
-            return false;
+            return true;
         }
     }
 
@@ -154,10 +153,14 @@ public class Authentication {
         System.out.println("Sign In attempt");
         askUser();
         try {
+            String ans = Server.interaction(new Request<>(Commands.ADD_USER, null));
             DistributionOfTheOutputStream.printFromServer(
-                    Server.interaction(new Request<>(Commands.ADD_USER, null))
+                    ans
             );
-        } catch (ServerDisconnect _) {}
+            if (ans.contains("already exists")) {
+                instance = null;
+            }
+        } catch (ServerDisconnect e) {}
         catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }

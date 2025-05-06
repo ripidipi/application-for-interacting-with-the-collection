@@ -126,7 +126,7 @@ public class DBManager {
             stmt.setString(2, password);
             stmt.executeUpdate();
             return true;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Error checking user existence: " + e.getMessage());
             DistributionOfTheOutputStream.println("User with that username already exists: " + username  +
                     " or exist different problem. Pleas try another username or password.");
@@ -169,7 +169,7 @@ public class DBManager {
             stmt.setInt(13, studyGroup.getId());
             stmt.setString(14, username);
             return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Error updating study group: " + e.getMessage());
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
             return false;
