@@ -12,9 +12,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ButtonType;
+import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.geometry.Insets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,7 +35,7 @@ public class CountByAdminDialog {
 
     public void show() {
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Count by Admin");
         dialog.setHeaderText("Enter administrator details");
 

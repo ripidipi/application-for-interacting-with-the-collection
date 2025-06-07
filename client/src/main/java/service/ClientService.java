@@ -81,7 +81,7 @@ public class ClientService {
                     "Group admin \\{\\s*name:\\s*(.*?)\\s+" +
             "birthday:\\s*(\\d{2}/\\d{2}/\\d{4})" +
                     "(?:\\s+height:\\s*([\\d.]*))?" +
-                    "\\s+passportID:\\s*(\\S+)\\s*\\}")
+                            "\\s+passportID:\\s*(\\S+)\\s*}")
                 .matcher(line3);
 
             if (!ma.find()) throw new IllegalArgumentException("Invalid line3: " + line3);
@@ -101,7 +101,7 @@ public class ClientService {
                         htxt, false, null, false
                 );
             }
-            String passport = ma.group(4);
+            String passport = ma.group(4).substring(0, ma.group(4).length() - 1);
             Person admin = new Person(adminName, adminBirthday, height, passport);
 
             return new StudyGroup(

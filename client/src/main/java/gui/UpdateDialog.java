@@ -1,20 +1,14 @@
 package gui;
 
-import io.DistributionOfTheOutputStream;
+import commands.Commands;
+import exceptions.*;
+import io.*;
 import service.ClientService;
 import collection.StudyGroup;
 import collection.Coordinates;
 import collection.Person;
 import collection.FormOfEducation;
 import collection.Semester;
-import io.PrimitiveDataTransform;
-import io.EnumTransform;
-import io.Authentication;
-import exceptions.DataInTheFuture;
-import exceptions.EmptyLine;
-import exceptions.IncorrectValue;
-import exceptions.RemoveOfTheNextSymbol;
-import exceptions.ZeroValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -22,11 +16,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import storage.Request;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+
+import static exceptions.CheckObjWithId.checkObjWithId;
 
 public class UpdateDialog {
     private final MainView parent;
@@ -48,7 +45,7 @@ public class UpdateDialog {
                         "id", Integer.class, true, true, false,
                         idStr.trim(), false, null, false
                 );
-
+                checkObjWithId(id);
                 Stage dialog = new Stage();
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 dialog.setTitle("Update StudyGroup");
@@ -92,7 +89,6 @@ public class UpdateDialog {
 
                 updateBtn.setOnAction(ev -> {
                     try {
-                        // Raw inputs
                         String nameTxt = nameField.getText().trim();
                         String xTxt = xField.getText().trim();
                         String yTxt = yField.getText().trim();
@@ -176,6 +172,8 @@ public class UpdateDialog {
             } catch (EmptyLine | ZeroValue | RemoveOfTheNextSymbol |
                      IncorrectValue | DataInTheFuture ex) {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
     }
