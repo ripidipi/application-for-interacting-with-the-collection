@@ -56,9 +56,10 @@ public class CommandsHandler {
      */
     public static Request<?> isCommand(String[] inputSplit, String inputMode) {
         try {
-            if (Authentication.getInstance().isNotAuthenticated(true)) {
-                throw new UnauthorizedUser("User must be authenticated");
-            }
+//            if (Authentication.getInstance().isNotAuthenticated(true)) {
+//                throw new UnauthorizedUser("User must be authenticated");
+//            }
+            // TODO
 
             if (inputSplit.length > 0 && convertToEnum(inputSplit[0])) {
                 Commands command = Commands.valueOf(inputSplit[0].toUpperCase());
@@ -85,7 +86,8 @@ public class CommandsHandler {
 
         } catch (UnauthorizedUser e) {
             DistributionOfTheOutputStream.println(e.getMessage());
-            Authentication.askAuthentication();
+//            Authentication.askAuthentication();
+            // TODO
         } catch (RuntimeException e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {

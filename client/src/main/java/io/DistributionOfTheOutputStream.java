@@ -108,7 +108,7 @@ public interface DistributionOfTheOutputStream {
      * </p>
      * @param response the raw response string from the server
      */
-    static void printFromServer(String response) {
+    static String printFromServer(String response) {
         try {
             if (response == null) {
                 println("Problem with server response");
@@ -124,10 +124,13 @@ public interface DistributionOfTheOutputStream {
                     .filter(line -> line.startsWith("F#"))
                     .map(line -> line.substring(2))
                     .collect(Collectors.toList());
-            toConsole.forEach(System.out::print);
+            toConsole.forEach(line -> print(line));
             toFile.forEach(DistributionOfTheOutputStream::printToFile);
+            String ans = toConsole.stream().collect(Collectors.joining());
+            return ans;
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         }
+        return null;
     }
 }

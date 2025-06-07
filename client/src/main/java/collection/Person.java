@@ -31,10 +31,10 @@ public record Person(String name, LocalDateTime birthday, Double height, String 
     @Override
     public String toString() {
         return "Group admin {" +
-                "name: " + name +
-                "\tbirthday: " + getBirthdayString() +
-                "\theight: " + (height == null ? "" : height) +
-                "\tpassportID: " + passportID +
+                "name='" + name + '\'' +
+                ", birthday=" + (birthday != null ? birthday.format(DateTimeFormatter.ISO_DATE) : "N/A") +
+                ", height=" + (height != null ? height : "N/A") +
+                ", passportID='" + passportID + '\'' +
                 '}';
     }
 

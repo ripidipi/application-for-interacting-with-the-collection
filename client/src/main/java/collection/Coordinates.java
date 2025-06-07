@@ -18,8 +18,8 @@ public record Coordinates(Long x, Float y) implements Serializable {
     @Override
     public String toString() {
         return "Coordinates {" +
-                "x coordinate: " + xToString() +
-                "\t y coordinate: " + yToString() +
+                "x=" + (x != null ? x : "N/A") +
+                ", y=" + (y != null ? y : "N/A") +
                 '}';
     }
 

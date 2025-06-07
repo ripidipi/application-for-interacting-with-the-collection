@@ -11,25 +11,26 @@ import java.util.Arrays;
 
 /**
  * Utility class for writing diagnostic and error logs to a file.
- * <p>
- * Provides methods to initialize the log, append messages, and format exceptions
- * with stack trace details. Logs are written to the path specified by
- * {@link OutputFileSettings#getLoggingFilePath()}.
- * </p>
+ * Logs are written to the path specified by {@link OutputFileSettings#getLoggingFilePath()}.
  */
 public class Logging {
 
     /**
-     * Initializes the logging system by deleting any existing log file and creating a new one
-     * with an initialization header. If initialization fails, a console message is printed.
+     * Initializes the logging system by deleting any existing log file and creating a new one.
      */
     public static void initialize() {
         File file = new File(OutputFileSettings.getLoggingFilePath());
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
         if (file.exists()) {
             file.delete();
         }
+
         try (OutputStreamWriter writer = new OutputStreamWriter(
-                new FileOutputStream(OutputFileSettings.getLoggingFilePath()), StandardCharsets.UTF_8)) {
+                new FileOutputStream(file), StandardCharsets.UTF_8)) {
             writer.write("Logging initialized" + System.lineSeparator());
         } catch (Exception e) {
             DistributionOfTheOutputStream.println("Logging error: could not initialize log file");
@@ -38,10 +39,6 @@ public class Logging {
 
     /**
      * Appends a log entry to the log file. If the log file does not exist, it is initialized first.
-     * <p>
-     * Each log entry is followed by a newline. I/O errors during logging will print
-     * a console message but will not interrupt application flow.
-     * </p>
      *
      * @param message the log message to append
      */
@@ -50,8 +47,9 @@ public class Logging {
         if (!file.exists()) {
             initialize();
         }
+
         try (OutputStreamWriter writer = new OutputStreamWriter(
-                new FileOutputStream(OutputFileSettings.getLoggingFilePath(), true), StandardCharsets.UTF_8)) {
+                new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
             writer.write(message);
             writer.write(System.lineSeparator());
         } catch (Exception e) {
@@ -61,14 +59,10 @@ public class Logging {
 
     /**
      * Formats an error message including stack trace elements.
-     * <p>
-     * Prepends an "[ERROR] " tag to the provided message, then appends the
-     * stack trace elements in array form. Intended for use as input to {@link #log(String)}.
-     * </p>
      *
-     * @param errorMessage         the exception message or description
-     * @param stackTraceElements   the array of stack trace elements from an exception
-     * @return a composite string containing the error tag, message, and stack trace
+     * @param errorMessage       the exception message
+     * @param stackTraceElements the stack trace
+     * @return formatted error message
      */
     public static String makeMessage(String errorMessage, StackTraceElement[] stackTraceElements) {
         String[] traceLines = new String[stackTraceElements.length];
@@ -77,5 +71,4 @@ public class Logging {
         }
         return "[ERROR] " + errorMessage + "\n" + Arrays.toString(traceLines);
     }
-
 }

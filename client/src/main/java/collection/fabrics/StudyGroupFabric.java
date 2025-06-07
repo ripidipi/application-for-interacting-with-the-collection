@@ -34,17 +34,12 @@ public class StudyGroupFabric {
      * @return true if the StudyGroup is valid; false otherwise
      */
     private static boolean isRightFill(StudyGroup studyGroup) {
-        if (studyGroup == null) {
-            return false;
-        }
-        return PersonFabric.isRightFill(studyGroup.getGroupAdmin())
-                && CoordinatesFabric.isRightFill(studyGroup.getCoordinates())
-                && studyGroup.getName() != null
-                && studyGroup.getCreationDate() != null
-                && studyGroup.getStudentCount() != null
-                && studyGroup.getFormOfEducation() != null
-                && studyGroup.getSemester() != null
-                && studyGroup.getId() != null;
+        return studyGroup != null &&
+                studyGroup.getName() != null &&
+                studyGroup.getCreationDate() != null &&
+                studyGroup.getStudentCount() != null &&
+                studyGroup.getFormOfEducation() != null &&
+                studyGroup.getSemester() != null;
     }
 
     /**

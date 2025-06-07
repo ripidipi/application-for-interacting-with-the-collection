@@ -82,9 +82,10 @@ public class ClientApp {
             }
             String input = scanner.nextLine();
             if ("yes".equalsIgnoreCase(input)) {
-                if (Authentication.getInstance().isNotAuthenticated(true)) {
-                    throw new UnauthorizedUser("User not authenticated for recovery");
-                }
+//                if (Authentication.getInstance().isNotAuthenticated(true)) {
+//                    throw new UnauthorizedUser("User not authenticated for recovery");
+//                }
+                // TODO
                 SavingAnEmergencyStop.recapCommandFromFile();
             }
         } catch (ServerDisconnect e) {

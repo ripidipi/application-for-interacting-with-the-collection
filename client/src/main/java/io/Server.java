@@ -2,6 +2,7 @@ package io;
 
 import commands.Exit;
 import exceptions.ServerDisconnect;
+import service.ClientService;
 import storage.Logging;
 import storage.Request;
 
@@ -25,10 +26,14 @@ import java.nio.charset.StandardCharsets;
  */
 public class Server {
 
-    /** Default server hostname. */
+    /**
+     * Default server hostname.
+     */
     private static final String SERVER_HOST = "127.0.0.1"; // helios.cs.ifmo.ru    127.0.0.1
-    /** Default server port number. */
-    private static final int SERVER_PORT = 6600;
+    /**
+     * Default server port number.
+     */
+    private static final int SERVER_PORT = 9610;
 
     /**
      * Returns the configured server hostname.
@@ -48,51 +53,62 @@ public class Server {
         return SERVER_PORT;
     }
 
-    /**
-     * Sends a {@link Request} to the server and receives a string response.
-     * <p>
-     * Opens a non-blocking UDP channel, serializes the request, and writes it.
-     * Waits up to 3 seconds for a response, polling every 10ms. On timeout,
-     * prints an error, exits via {@link Exit}, and throws {@link ServerDisconnect}.
-     * </p>
-     *
-     * @param request the request to send (must be serializable)
-     * @return the UTF-8 decoded server response
-     * @throws ServerDisconnect if unable to send, receive, or on timeout
-     */
     public static String interaction(Request<?> request) throws ServerDisconnect {
+        final int CHUNK_SIZE = 1000;
         try (DatagramChannel client = DatagramChannel.open()) {
             client.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
-            client.configureBlocking(false);
 
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try (ObjectOutputStream oout = new ObjectOutputStream(bout)) {
                 oout.writeObject(request);
             }
             byte[] bytes = bout.toByteArray();
-
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             client.write(buffer);
 
-            ByteBuffer recv = ByteBuffer.allocate(4096);
-            long deadline = System.currentTimeMillis() + 3000;
-            while (recv.position() == 0) {
-                if (System.currentTimeMillis() > deadline) {
-                    System.out.println("Server unavailable.");
-                    Exit.exit();
-                    throw new ServerDisconnect("Response timeout");
-                }
-                Thread.sleep(5);
-                client.read(recv);
-            }
-            recv.flip();
-            return StandardCharsets.UTF_8.decode(recv).toString();
+            StringBuilder fullResponse = new StringBuilder();
+            long overallDeadline = System.currentTimeMillis() + 3000;
 
+            while (true) {
+                ByteBuffer recvBuf = ByteBuffer.allocate(8192);
+                long chunkDeadline = System.currentTimeMillis() + 100;
+                boolean gotAny = false;
+
+                while (true) {
+                    if (System.currentTimeMillis() > overallDeadline) {
+                        throw new ServerDisconnect("Response timeout");
+                    }
+                    int readBytes = client.read(recvBuf);
+                    if (readBytes > 0) {
+                        gotAny = true;
+                        break;
+                    }
+                    if (System.currentTimeMillis() > chunkDeadline) {
+                        break;
+                    }
+                    Thread.sleep(5);
+                }
+
+                if (!gotAny) break;
+
+                recvBuf.flip();
+                String part = StandardCharsets.UTF_8.decode(recvBuf).toString();
+                fullResponse.append(part);
+
+                if (part.length() < CHUNK_SIZE) break;
+            }
+
+            return fullResponse.toString();
         } catch (ServerDisconnect e) {
+            System.out.println(e.getMessage());
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
             throw e;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+            throw new ServerDisconnect("Communication failure: " + e.getMessage());
         }
-        throw new ServerDisconnect("Communication failure");
     }
+
+
 }
