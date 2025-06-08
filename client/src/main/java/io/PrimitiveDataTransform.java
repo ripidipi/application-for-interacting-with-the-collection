@@ -103,9 +103,12 @@ public class PrimitiveDataTransform {
         if (fileMode) {
             return null;
         }
-        return inputAssistant(name, type, emptyLineCheck,
-                zeroValueCheck, dateInTheFutureCheck, formatter);
+        throw new IncorrectValue(input);
+
     }
+//                inputAssistant(name, type, emptyLineCheck,
+//                zeroValueCheck, dateInTheFutureCheck, formatter);
+//    }
 
     /**
      * Validates raw input against configured rules before parsing.

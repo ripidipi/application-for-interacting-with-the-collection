@@ -79,7 +79,8 @@ public class CountByAdminDialog {
                     }
 
                     Double height = heightTxt.isEmpty() ? null : PrimitiveDataTransform.transformToRequiredType(
-                            "admin height", Double.class, false, true, false, heightTxt, false, null, false
+                            "admin height", Double.class, false,
+                            true, false, heightTxt, false, null, false
                     );
 
                     Person admin = new Person(name, birthday, height, passport);

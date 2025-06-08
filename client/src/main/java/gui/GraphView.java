@@ -1,13 +1,12 @@
-// ./src/main/java/gui/GraphView.java
 package gui;
 
 import collection.StudyGroup;
 import commands.Commands;
 import exceptions.ServerDisconnect;
+import io.Authentication;
 import io.Server;
 import javafx.application.Platform;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableView;
 import javafx.scene.input.ScrollEvent;
@@ -19,17 +18,16 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import storage.Request;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 
 public class GraphView extends Pane {
     private final Group graphContainer = new Group();
     private double scale = 1.0;
     private final List<StudyGroup> groups;
-    private final List<Node> nodes = new ArrayList<>();
+    private final List<Circle> nodes = new ArrayList<>();
     private final List<Line> edges = new ArrayList<>();
     private final Map<String, Color> adminColors = new HashMap<>();
 
@@ -41,119 +39,89 @@ public class GraphView extends Pane {
     }
 
     private void initZoomAndDrag() {
-        setOnScroll((ScrollEvent event) -> {
-            double delta = event.getDeltaY() > 0 ? 1.1 : 0.9;
+        setOnScroll(e -> {
+            double delta = e.getDeltaY() > 0 ? 1.1 : 0.9;
             scale *= delta;
             graphContainer.setScaleX(scale);
             graphContainer.setScaleY(scale);
         });
-
-        setOnMousePressed(event -> {
-            final double[] startX = {event.getX()};
-            final double[] startY = {event.getY()};
-            setOnMouseDragged(dragEvent -> {
-                graphContainer.setTranslateX(graphContainer.getTranslateX() + dragEvent.getX() - startX[0]);
-                graphContainer.setTranslateY(graphContainer.getTranslateY() + dragEvent.getY() - startY[0]);
-                startX[0] = dragEvent.getX();
-                startY[0] = dragEvent.getY();
-            });
+        final double[] start = new double[2];
+        setOnMousePressed(e -> {
+            start[0] = e.getX(); start[1] = e.getY();
+        });
+        setOnMouseDragged(e -> {
+            graphContainer.setTranslateX(graphContainer.getTranslateX() + e.getX() - start[0]);
+            graphContainer.setTranslateY(graphContainer.getTranslateY() + e.getY() - start[1]);
+            start[0] = e.getX(); start[1] = e.getY();
         });
     }
 
     private void drawGraph(List<StudyGroup> groups, Tab tableTab, TableView<StudyGroup> tableView) throws ServerDisconnect {
-        double angleStep = 360.0 / groups.size();
-        double radius = 200;
+        graphContainer.getChildren().clear(); nodes.clear(); edges.clear();
+        int n = groups.size();
+        double width = getWidth(), height = getHeight();
+        double baseRadius = Math.min(width, height) / 2 - 50;
+        if (baseRadius <= 0) baseRadius = 200;
+        double extra = Math.max(0, n - 5) * 20;
+        double radius = baseRadius + extra;
+        double centerX = width / 2 <= 0 ? 300 : width / 2;
+        double centerY = height / 2 <= 0 ? 300 : height / 2;
 
-        for (int i = 0; i < groups.size(); i++) {
-            double angle = Math.toRadians(i * angleStep);
-            double x = radius * Math.cos(angle) + getWidth() / 2;
-            double y = radius * Math.sin(angle) + getHeight() / 2;
-
+        for (int i = 0; i < n; i++) {
+            double angle = 2 * Math.PI * i / n;
+            double x = centerX + radius * Math.cos(angle);
+            double y = centerY + radius * Math.sin(angle);
             StudyGroup group = groups.get(i);
-            Color color = (!Server.interaction(new Request<>(Commands.CHECK_IS_WITH_ID,
-                    group.getId())).contains("false")) ? Color.web("#4CAF50") : Color.web("#E0E0E0");
-
-            int studentCount = group.getStudentCount();
-            double circleRadius = Math.min(Math.log10(studentCount) * 10, 50) ;
-
-            Circle node = new Circle(x, y, circleRadius);
-            node.setFill(color.deriveColor(1, 1, 1, 0.5));
-            node.setStroke(color);
-
-            Text label = new Text(
-                    x - circleRadius / 2,
-                    y + circleRadius / 4,
-                    "Group " + group.getId() + "\n" + group.getName()
-            );
-            label.setFill(Color.BLACK);
-
-            int finalI = i;
-            node.setOnMouseClicked(event -> {
-                tableView.getSelectionModel().select(groups.get(finalI));
-                tableView.scrollTo(groups.get(finalI));
-                tableTab.getTabPane().getSelectionModel().select(tableTab);
-            });
-
-            nodes.add(node);
-            graphContainer.getChildren().addAll(node, label);
+            boolean own = !Server.interaction(new Request<>(Commands.CHECK_IS_WITH_ID, group.getId())).contains("false");
+            Color fill = own ? Color.LIGHTGREEN : Color.LIGHTGRAY;
+            Color stroke = own ? Color.GREEN.darker() : Color.GRAY.darker();
+            double r = Math.min(10 + Math.log10(group.getStudentCount()) * 10, 60);
+            Circle node = new Circle(x, y, r);
+            node.setFill(fill.deriveColor(1,1,1,0.7)); node.setStroke(stroke);
+            node.setStrokeWidth(2); node.setPickOnBounds(true);
+            int idx = i;
+            node.setOnMouseClicked(e -> selectGroup(idx, tableTab, tableView));
+            Text label = new Text(group.getId().toString());
+            label.setFont(Font.font(14)); label.setFill(Color.BLACK);
+            label.setX(x - r/2); label.setY(y + r/4);
+            nodes.add(node); graphContainer.getChildren().addAll(node, label);
         }
-        Platform.runLater(() -> drawEdges(groups, tableTab, tableView));
+        Platform.runLater(() -> drawEdges(tableTab, tableView));
     }
 
-    private void drawEdges(List<StudyGroup> groups, Tab tableTab, TableView<StudyGroup> tableView) {
-        for (int i = 0; i < groups.size(); i++) {
-            for (int j = i + 1; j < groups.size(); j++) {
-                StudyGroup groupA = groups.get(i);
-                StudyGroup groupB = groups.get(j);
-
-                if (groupA.getGroupAdmin().equals(groupB.getGroupAdmin())) {
-                    addEdge(i, j, groupB.getGroupAdmin().name(), Color.GRAY, tableTab, tableView);
-                }
-                if (groupA.getFormOfEducation().equals(groupB.getFormOfEducation())) {
-                    addEdge(i, j, groupB.getFormOfEducation().toString(), Color.BLUE, tableTab, tableView);
-                }
-                if (groupA.getSemester().equals(groupB.getSemester())) {
-                    addEdge(i, j, groupB.getSemester().toString(), Color.RED, tableTab, tableView);
-                }
+    private void drawEdges(Tab tableTab, TableView<StudyGroup> tableView) {
+        int n = groups.size();
+        for (int i = 0; i < n; i++) {
+            for (int j = i+1; j < n; j++) {
+                StudyGroup a = groups.get(i), b = groups.get(j);
+                Color color; String lbl;
+                if (a.getGroupAdmin().equals(b.getGroupAdmin())) { lbl = a.getGroupAdmin().name(); color = Color.PURPLE; }
+                else if (a.getFormOfEducation().equals(b.getFormOfEducation())) { lbl = a.getFormOfEducation().toString(); color = Color.DARKBLUE; }
+                else if (a.getSemester().equals(b.getSemester())) { lbl = a.getSemester().toString(); color = Color.DARKRED; }
+                else continue;
+                Circle ca = nodes.get(i), cb = nodes.get(j);
+                double x1=ca.getCenterX(), y1=ca.getCenterY(), x2=cb.getCenterX(), y2=cb.getCenterY();
+                Line edge = new Line(x1, y1, x2, y2);
+                edge.setStroke(color); edge.setStrokeWidth(1); edge.setOpacity(0.6);
+                int idx = i; edge.setOnMouseClicked(e -> selectGroup(idx, tableTab, tableView));
+                double mx=(x1+x2)/2, my=(y1+y2)/2;
+                double dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+                double nx=-dy/len, ny=dx/len, off=10;
+                Text t=new Text(mx+nx*off, my+ny*off, lbl);
+                t.setFont(Font.font(12)); t.setFill(color.darker());
+                edges.add(edge); graphContainer.getChildren().addAll(edge, t);
             }
         }
     }
 
-    private void addEdge(int i, int j, String label, Color color, Tab tableTab, TableView<StudyGroup> tableView) {
-        Circle circleA = (Circle) nodes.get(i);
-        Circle circleB = (Circle) nodes.get(j);
-
-        Line edge = new Line(
-                circleA.getCenterX(), circleA.getCenterY(),
-                circleB.getCenterX(), circleB.getCenterY()
-        );
-        edge.setStroke(color);
-        edge.setStrokeWidth(2);
-
-        Text edgeLabel = new Text(
-                (circleA.getCenterX() + circleB.getCenterX()) / 2,
-                (circleA.getCenterY() + circleB.getCenterY()) / 2,
-                label
-        );
-        edgeLabel.setFill(color);
-        edgeLabel.setFont(Font.font("Arial", 12));
-
-        edge.setOnMouseClicked(event -> {
-            tableView.getSelectionModel().select(groups.get(i));
-            tableView.scrollTo(groups.get(i));
-            tableTab.getTabPane().getSelectionModel().select(tableTab);
-        });
-
-        edges.add(edge);
-        graphContainer.getChildren().addAll(edge, edgeLabel);
+    private void selectGroup(int idx, Tab tableTab, TableView<StudyGroup> tableView) {
+        StudyGroup g = groups.get(idx);
+        tableView.getSelectionModel().select(g);
+        tableView.scrollTo(g);
+        tableTab.getTabPane().getSelectionModel().select(tableTab);
     }
 
-    public void refreshGraph(List<StudyGroup> newGroups, Tab tableTab, TableView<StudyGroup> tableView)
-            throws ServerDisconnect {
-        graphContainer.getChildren().clear();
-        nodes.clear();
-        edges.clear();
+    public void refreshGraph(List<StudyGroup> newGroups, Tab tableTab, TableView<StudyGroup> tableView) throws ServerDisconnect {
         drawGraph(newGroups, tableTab, tableView);
-        Platform.runLater(() -> this.drawEdges(newGroups, tableTab, tableView));
     }
 }

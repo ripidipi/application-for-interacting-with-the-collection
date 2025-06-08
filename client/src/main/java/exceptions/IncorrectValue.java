@@ -7,6 +7,6 @@ public class IncorrectValue extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return super.getMessage() + " invalid argument for command";
+        return super.getMessage() + " invalid argument";
   }
 }
