@@ -19,6 +19,10 @@ public class Authentication {
         return instance;
     }
 
+    public static void logout() {
+        instance = null;
+    }
+
     public static boolean login(String username, String plainPassword) throws Exception {
         String hash = makeHash(plainPassword);
         instance = new Authentication(username, hash);

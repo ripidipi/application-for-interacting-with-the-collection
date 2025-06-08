@@ -74,7 +74,7 @@ public class GraphView extends Pane {
                     group.getId())).contains("false")) ? Color.web("#4CAF50") : Color.web("#E0E0E0");
 
             int studentCount = group.getStudentCount();
-            double circleRadius = Math.log10(studentCount) * 10;
+            double circleRadius = Math.min(Math.log10(studentCount) * 10, 50) ;
 
             Circle node = new Circle(x, y, circleRadius);
             node.setFill(color.deriveColor(1, 1, 1, 0.5));
@@ -107,13 +107,13 @@ public class GraphView extends Pane {
                 StudyGroup groupB = groups.get(j);
 
                 if (groupA.getGroupAdmin().equals(groupB.getGroupAdmin())) {
-                    addEdge(i, j, "Same Admin", Color.GRAY, tableTab, tableView);
+                    addEdge(i, j, groupB.getGroupAdmin().name(), Color.GRAY, tableTab, tableView);
                 }
                 if (groupA.getFormOfEducation().equals(groupB.getFormOfEducation())) {
-                    addEdge(i, j, "Same Form", Color.BLUE, tableTab, tableView);
+                    addEdge(i, j, groupB.getFormOfEducation().toString(), Color.BLUE, tableTab, tableView);
                 }
                 if (groupA.getSemester().equals(groupB.getSemester())) {
-                    addEdge(i, j, "Same Semester", Color.RED, tableTab, tableView);
+                    addEdge(i, j, groupB.getSemester().toString(), Color.RED, tableTab, tableView);
                 }
             }
         }
@@ -139,21 +139,13 @@ public class GraphView extends Pane {
         edgeLabel.setFont(Font.font("Arial", 12));
 
         edge.setOnMouseClicked(event -> {
-            tableView.getSelectionModel().select(groups.get(i)); // [3]
+            tableView.getSelectionModel().select(groups.get(i));
             tableView.scrollTo(groups.get(i));
             tableTab.getTabPane().getSelectionModel().select(tableTab);
         });
 
         edges.add(edge);
         graphContainer.getChildren().addAll(edge, edgeLabel);
-    }
-
-    private Color generateColor(String adminName) {
-        int hash = adminName.hashCode();
-        int r = (hash & 0xFF0000) >> 16;
-        int g = (hash & 0xFF00) >> 8;
-        int b = hash & 0xFF;
-        return Color.rgb(r, g, b);
     }
 
     public void refreshGraph(List<StudyGroup> newGroups, Tab tableTab, TableView<StudyGroup> tableView)

@@ -6,6 +6,9 @@ import io.Authentication;
 import io.DistributionOfTheOutputStream;
 import io.Server;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.geometry.Side;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
@@ -61,6 +64,28 @@ public class MainView {
         tableView = new TableView<>();
         dataList = FXCollections.observableArrayList();
         tableView.setItems(dataList);
+
+
+        tableView.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                StudyGroup selectedGroup = tableView.getSelectionModel().getSelectedItem();
+                if (selectedGroup != null) {
+                    try {
+                        String permissionResponse = Server.interaction(
+                                new Request<>(Commands.CHECK_IS_WITH_ID, selectedGroup.getId()));
+                        if (!permissionResponse.contains("false")) {
+                            Platform.runLater(() -> new UpdateDialog(this, selectedGroup.getId().toString()).show());
+                        }
+                    } catch (ServerDisconnect e) {
+                        Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+                        Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Permission check failed").showAndWait());
+                    }
+                }
+            }
+        });
+
+
+        String currentUser = Authentication.getInstance().getUsername();
 
         tableView.setRowFactory(tv -> new TableRow<StudyGroup>() {
             @Override
@@ -164,6 +189,13 @@ public class MainView {
         tabPane.getTabs().addAll(tableTab, graphTab);
         root.setCenter(tabPane);
 
+        Button userButton = new Button(currentUser);
+        userButton.setStyle("-fx-background-color: transparent; -fx-text-fill: blue; -fx-font-weight: bold;");
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem stayItem = new MenuItem("Stay");
+        MenuItem logoutItem = new MenuItem("Leave");
+        contextMenu.getItems().addAll(stayItem, logoutItem);
+
         HBox buttonBox = new HBox(10);
         buttonBox.setPadding(new Insets(10));
         Button addBtn = new Button("Add");
@@ -196,9 +228,29 @@ public class MainView {
         });
         helpBtn.setOnAction(e -> handleHelp());
         infoBtn.setOnAction(e -> handleInfo());
+        userButton.setOnAction(e -> contextMenu.show(userButton, Side.BOTTOM, 0, 0));
+        logoutItem.setOnAction(e -> {
+            try {
+                Authentication.logout();
+
+                Platform.runLater(() -> {
+                    stopAutoRefresh();
+                    stage.close();
+                    new LoginView(new Stage()).show();
+                });
+            } catch (Exception ex) {
+                Logging.log(Logging.makeMessage(ex.getMessage(), ex.getStackTrace()));
+                Platform.runLater(() -> new Alert(Alert.AlertType.ERROR,
+                        "problem to leave " + ex.getMessage()).showAndWait());
+            }
+        });
 
 
+        HBox topRightBox = new HBox(userButton);
+        topRightBox.setAlignment(Pos.TOP_RIGHT);
+        root.setTop(topRightBox);
         handleRefresh();
+
         autoRefreshTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(5), ev -> handleRefresh())
         );
@@ -223,7 +275,8 @@ public class MainView {
                 Platform.runLater(() -> {
                     dataList.setAll(filtered);
                     if (filtered.isEmpty()) {
-                        new Alert(Alert.AlertType.WARNING, "No data received from server.", ButtonType.OK).showAndWait();
+                        new Alert(Alert.AlertType.WARNING, "No data received from server.",
+                                ButtonType.OK).showAndWait();
                     }
                     tableView.getSortOrder().setAll(savedSortOrder);
 
