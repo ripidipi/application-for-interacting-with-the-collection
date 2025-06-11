@@ -147,6 +147,11 @@ public class ClientService {
         return Server.interaction(req);
     }
 
+    public static String removeByAdminDialog(Person admin) throws Exception {
+        Request<Person> req = new Request<>(Commands.REMOVE_ANY_BY_GROUP_ADMIN, admin);
+        return Server.interaction(req);
+    }
+
     public static String countByAdmin(Person admin) throws Exception {
         Request<Person> req = new Request<>(Commands.COUNT_BY_GROUP_ADMIN, admin);
         return Server.interaction(req);

@@ -180,6 +180,7 @@ public class MainView {
         Button addBtn = new Button("Add");
         Button updateBtn = new Button("Update by ID");
         Button removeBtn = new Button("Remove by ID");
+        Button removeAdminBtn = new Button("Remove by Admin");
         Button clearBtn = new Button("Clear");
         Button countBtn = new Button("Count by Admin");
         Button exitBtn = new Button("Exit");
@@ -189,7 +190,8 @@ public class MainView {
         buttonBox.getChildren().addAll(
                 addBtn, updateBtn, removeBtn,
                 clearBtn, countBtn, exitBtn,
-                helpBtn, infoBtn, filterBtn
+                helpBtn, infoBtn, filterBtn,
+                removeAdminBtn
         );
         root.setBottom(buttonBox);
         stage.setScene(new Scene(root, 1000, 600));
@@ -206,6 +208,7 @@ public class MainView {
         helpBtn.setOnAction(e -> handleHelp());
         infoBtn.setOnAction(e -> handleInfo());
         filterBtn.setOnAction(e -> filterDialog.showAndWait());
+        removeAdminBtn.setOnAction(e -> new RemoveByAdminDialog(this).show());
         userButton.setOnAction(e -> contextMenu.show(userButton, Side.BOTTOM, 0, 0));
         logoutItem.setOnAction(e -> {
             try {

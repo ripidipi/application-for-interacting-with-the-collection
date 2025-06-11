@@ -1,19 +1,14 @@
 package gui;
 
-import io.DistributionOfTheOutputStream;
+import commands.Commands;
+import io.*;
 import service.ClientService;
 import collection.StudyGroup;
 import collection.Coordinates;
 import collection.Person;
 import collection.FormOfEducation;
 import collection.Semester;
-import io.PrimitiveDataTransform;
-import io.EnumTransform;
-import io.Authentication;
 import exceptions.EmptyLine;
-import exceptions.RemoveOfTheNextSymbol;
-import exceptions.ZeroValue;
-import exceptions.IncorrectValue;
 import exceptions.DataInTheFuture;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -22,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import storage.Request;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -57,6 +53,9 @@ public class AddDialog {
         DatePicker birthdayPicker  = new DatePicker();
         TextField adminHeightField = new TextField();
         TextField adminPassportField = new TextField();
+        CheckBox ifMaxCheck  = new CheckBox("Only if max");
+
+
 
         grid.add(new Label("Name:"), 0, 0);            grid.add(nameField, 1, 0);
         grid.add(new Label("Coord X (optional):"), 0, 1); grid.add(xField, 1, 1);
@@ -68,9 +67,10 @@ public class AddDialog {
         grid.add(new Label("Admin Birthday:"), 0, 7);   grid.add(birthdayPicker, 1, 7);
         grid.add(new Label("Admin Height (optional):"),0,8); grid.add(adminHeightField,1,8);
         grid.add(new Label("Admin PassportID:"), 0, 9); grid.add(adminPassportField,1,9);
+        grid.add(ifMaxCheck, 1, 10);
 
         Button addBtn = new Button("Add");
-        grid.add(addBtn, 1, 10);
+        grid.add(addBtn, 1, 11);
 
         dialog.setScene(new Scene(grid, 450, 520));
         dialog.show();
@@ -146,7 +146,13 @@ public class AddDialog {
                         Authentication.getInstance().getUsername()
                 );
 
-                String response = ClientService.addGroup(group);
+                String response;
+                if (ifMaxCheck.isSelected()) {
+                    Request<StudyGroup> req = new Request<>(Commands.ADD_IF_MAX, group);
+                    response = Server.interaction(req);
+                } else {
+                    response = ClientService.addGroup(group);
+                }
                 new Alert(Alert.AlertType.INFORMATION, DistributionOfTheOutputStream.printFromServer(response), ButtonType.OK).showAndWait();
                 dialog.close();
                 parent.handleRefresh();

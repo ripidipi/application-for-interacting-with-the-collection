@@ -59,7 +59,7 @@ public class CountByAdminDialog {
         grid.add(adminPassportField, 1, 3);
 
         ButtonType countBtn = new ButtonType("Count");
-        dialog.getDialogPane().getButtonTypes().addAll(countBtn, ButtonType.CANCEL);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, countBtn);
         dialog.getDialogPane().setContent(grid);
 
         dialog.setResultConverter(button -> {

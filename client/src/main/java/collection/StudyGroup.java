@@ -93,7 +93,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
      */
     @Override
     public int compareTo(StudyGroup other) {
-        return this.id.compareTo(other.id);
+        return this.id.compareTo(other.studentCount);
     }
 
     /**
