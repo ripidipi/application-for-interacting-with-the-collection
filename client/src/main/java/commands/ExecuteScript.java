@@ -33,7 +33,7 @@ public class ExecuteScript implements Helpable, Command {
      *
      * @param fileName the name of the script file to execute
      */
-    public static void executeScript(String fileName) {
+    public static void executeScript(String fileName) throws ServerDisconnect {
         executeScriptMode = true;
         DistributionOfTheOutputStream.printlnToFile("Starting script execution: " + fileName);
         try {
@@ -49,13 +49,19 @@ public class ExecuteScript implements Helpable, Command {
                     Server.interaction(new Request<>(Commands.EXECUTE_SCRIPT, null))
             );
             CommandsHandler.inputFromFile(fileName);
-        } catch (ServerDisconnect e) {}
+        } catch (ServerDisconnect e) {
+            throw  new ServerDisconnect("");
+        }
         catch (IncorrectValue | InfiniteRecursion e) {
             DistributionOfTheOutputStream.println(e.getMessage());
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
         } finally {
+            assert fileName != null;
+            RunningFiles.getInstance().removeFileName(new FileName(fileName.toUpperCase(), Authentication.getInstance()));
             DistributionOfTheOutputStream.printlnToFile("");
+
+            System.out.println("finished executing script execution: " + fileName);
             executeScriptMode = false;
         }
     }
@@ -87,7 +93,11 @@ public class ExecuteScript implements Helpable, Command {
      */
     @Override
     public Request<?> execute(String arg, String inputMode) {
-        executeScript(arg);
+        try {
+            executeScript(arg);
+        } catch (ServerDisconnect e) {
+            e.printStackTrace();
+        }
         return new Request<>(Commands.EXECUTE_SCRIPT, null);
     }
 

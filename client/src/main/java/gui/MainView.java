@@ -10,10 +10,13 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
+import javafx.util.Callback;
 import service.ClientService;
 import collection.StudyGroup;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,6 +29,7 @@ import javafx.stage.Stage;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
+import service.Localization;
 import storage.Logging;
 import javafx.scene.control.TableView;
 import storage.Request;
@@ -57,6 +61,7 @@ public class MainView {
     private String adminFilter = "";
     private List<FormOfEducation> selectedForms = new ArrayList<>();
     private List<Semester> selectedSems = new ArrayList<>();
+    private ComboBox<Locale> localeCombo;
 
     public MainView(Stage stage) {
         this.stage = stage;
@@ -64,6 +69,7 @@ public class MainView {
     }
 
     public void show() throws Exception {
+
         stage.setTitle("StudyGroup Collection");
         BorderPane root = new BorderPane();
         tableView = new TableView<>();
@@ -86,6 +92,48 @@ public class MainView {
                 }
             }
         });
+        ObservableList<Locale> locales = FXCollections.observableArrayList(
+                new Locale("ru"),
+                new Locale("et"),
+                new Locale("lv"),
+                new Locale("es", "MX")
+        );
+        localeCombo = new ComboBox<>(locales);
+        localeCombo.setValue(Localization.getLocale());
+        localeCombo = new ComboBox<>(locales);
+        localeCombo.setValue(Localization.getLocale());
+
+        Callback<ListView<Locale>, ListCell<Locale>> cellFactory = lv -> new ListCell<>() {
+            private final ImageView img = new ImageView();
+            @Override protected void updateItem(Locale item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    String code = item.getLanguage() + (item.getCountry().isEmpty() ? "" : "-" + item.getCountry());
+                    Image flag = new Image(Objects.requireNonNull(getClass().getResourceAsStream(
+                            "/flags/" + code + ".png")), 24, 16, true, true);
+                    img.setImage(flag);
+                    String label = switch (code) {
+                        case "ru" -> "Русский";
+                        case "et" -> "Eesti";
+                        case "lv" -> "Latviešu";
+                        case "es-MX" -> "Español (MX)";
+                        default -> item.getDisplayLanguage(item);
+                    };
+                    setText(label);
+                    setGraphic(img);
+                }
+            }
+        };
+        localeCombo.setValue(Locale.ENGLISH);
+        localeCombo.setCellFactory(cellFactory);
+        localeCombo.setButtonCell(cellFactory.call(null));
+        localeCombo.valueProperty().addListener((obs, o, n) -> {
+            if (n != null) Localization.setLocale(n);
+        });
+
         String currentUser = Authentication.getInstance().getUsername();
         tableView.setRowFactory(tv -> new TableRow<StudyGroup>() {
             @Override
@@ -106,6 +154,7 @@ public class MainView {
                 }
             }
         });
+
         TableColumn<StudyGroup, String> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(cell -> new SimpleStringProperty(
                 cell.getValue().getId() != null ? cell.getValue().getId().toString() : ""
@@ -178,6 +227,7 @@ public class MainView {
         HBox buttonBox = new HBox(10);
         buttonBox.setPadding(new Insets(10));
         Button addBtn = new Button("Add");
+        Button execScriptBtn = new Button("Execute Script");
         Button updateBtn = new Button("Update by ID");
         Button removeBtn = new Button("Remove by ID");
         Button removeAdminBtn = new Button("Remove by Admin");
@@ -189,10 +239,11 @@ public class MainView {
         Button filterBtn = new Button("Filters");
         buttonBox.getChildren().addAll(
                 addBtn, updateBtn, removeBtn,
-                clearBtn, countBtn, exitBtn,
-                helpBtn, infoBtn, filterBtn,
-                removeAdminBtn
+                removeAdminBtn, clearBtn, countBtn,
+                exitBtn, helpBtn, infoBtn,
+                execScriptBtn, filterBtn
         );
+
         root.setBottom(buttonBox);
         stage.setScene(new Scene(root, 1000, 600));
         stage.show();
@@ -201,6 +252,7 @@ public class MainView {
         removeBtn.setOnAction(e -> handleRemove());
         clearBtn.setOnAction(e -> handleClear());
         countBtn.setOnAction(e -> handleCount());
+        execScriptBtn.setOnAction(e -> new ExecuteScriptDialog(this).show());
         exitBtn.setOnAction(e -> {
             stopAutoRefresh();
             stage.close();
@@ -224,9 +276,10 @@ public class MainView {
                         "problem to leave " + ex.getMessage()).showAndWait());
             }
         });
-        HBox topRightBox = new HBox(userButton);
-        topRightBox.setAlignment(Pos.TOP_RIGHT);
-        root.setTop(topRightBox);
+        HBox topBar = new HBox(10, localeCombo, userButton);
+        topBar.setPadding(new Insets(10));
+        topBar.setAlignment(Pos.CENTER_RIGHT);
+        root.setTop(topBar);
         handleRefresh();
         autoRefreshTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(2), ev -> handleRefresh())

@@ -33,7 +33,7 @@ public class Server {
     /**
      * Default server port number.
      */
-    private static final int SERVER_PORT = 9610;
+    private static final int SERVER_PORT = 9611;
 
     /**
      * Returns the configured server hostname.
