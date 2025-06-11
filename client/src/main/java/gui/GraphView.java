@@ -71,6 +71,7 @@ public class GraphView extends Pane {
             double angle = 2 * Math.PI * i / n;
             double x = centerX + radius * Math.cos(angle);
             double y = centerY + radius * Math.sin(angle);
+
             StudyGroup group = groups.get(i);
             boolean own = !Server.interaction(new Request<>(Commands.CHECK_IS_WITH_ID, group.getId())).contains("false");
             Color fill = own ? Color.LIGHTGREEN : Color.LIGHTGRAY;
@@ -79,6 +80,7 @@ public class GraphView extends Pane {
             Circle node = new Circle(x, y, r);
             node.setFill(fill.deriveColor(1,1,1,0.7)); node.setStroke(stroke);
             node.setStrokeWidth(2); node.setPickOnBounds(true);
+
             int idx = i;
             node.setOnMouseClicked(e -> selectGroup(idx, tableTab, tableView));
             Text label = new Text(group.getId().toString());
@@ -94,11 +96,19 @@ public class GraphView extends Pane {
         for (int i = 0; i < n; i++) {
             for (int j = i+1; j < n; j++) {
                 StudyGroup a = groups.get(i), b = groups.get(j);
-                Color color; String lbl;
-                if (a.getGroupAdmin().equals(b.getGroupAdmin())) { lbl = a.getGroupAdmin().name(); color = Color.PURPLE; }
-                else if (a.getFormOfEducation().equals(b.getFormOfEducation())) { lbl = a.getFormOfEducation().toString(); color = Color.DARKBLUE; }
-                else if (a.getSemester().equals(b.getSemester())) { lbl = a.getSemester().toString(); color = Color.DARKRED; }
+                Color color;
+                String lbl;
+                if (a.getGroupAdmin().equals(b.getGroupAdmin())) {
+                    lbl = a.getGroupAdmin().name(); color = Color.PURPLE;
+                }
+                else if (a.getFormOfEducation().equals(b.getFormOfEducation())) {
+                    lbl = a.getFormOfEducation().toString(); color = Color.DARKBLUE;
+                }
+                else if (a.getSemester().equals(b.getSemester())) {
+                    lbl = a.getSemester().toString(); color = Color.DARKRED;
+                }
                 else continue;
+
                 Circle ca = nodes.get(i), cb = nodes.get(j);
                 double x1=ca.getCenterX(), y1=ca.getCenterY(), x2=cb.getCenterX(), y2=cb.getCenterY();
                 Line edge = new Line(x1, y1, x2, y2);

@@ -1,15 +1,18 @@
 package gui;
 
+import collection.FormOfEducation;
+import collection.Semester;
 import commands.Commands;
 import exceptions.ServerDisconnect;
 import io.Authentication;
 import io.DistributionOfTheOutputStream;
 import io.Server;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import service.ClientService;
@@ -20,8 +23,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
@@ -36,10 +37,7 @@ import javafx.scene.layout.BorderPane;
 import storage.Request;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static service.ClientService.showAllGroupsParsed;
@@ -50,12 +48,20 @@ public class MainView {
     private ObservableList<StudyGroup> dataList;
     private Timeline autoRefreshTimeline;
     private List<TableColumn<StudyGroup, ?>> savedSortOrder;
+    private Dialog<Void> filterDialog;
+    private TextField tfMinStudents, tfMaxStudents;
+    private TextField tfMinX, tfMaxX, tfMinY, tfMaxY;
+    private TextField tfNameFilter;
+    private ListView<FormOfEducation> lvFormFilter;
+    private ListView<Semester>      lvSemFilter;
+    private TextField tfAdminFilter;
     private final TabPane tabPane = new TabPane();
     private Tab graphTab;
     private Tab tableTab;
 
     public MainView(Stage stage) {
         this.stage = stage;
+        initFilterDialog();
     }
 
     public void show() throws Exception {
@@ -118,24 +124,21 @@ public class MainView {
                 cell.getValue().getName() != null ? cell.getValue().getName() : ""
         ));
 
-        TableColumn<StudyGroup, String> xCol = new TableColumn<>("Coord X");
-        xCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getCoordinates() != null && cell.getValue().getCoordinates().x() != null
-                        ? cell.getValue().getCoordinates().x().toString()
-                        : ""
+        TableColumn<StudyGroup, Number> xCol = new TableColumn<>("Coord X");
+        xCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(
+                c.getValue().getCoordinates().x() != null ? c.getValue().getCoordinates().x() : 0L
         ));
+        xCol.setComparator(Comparator.comparingLong(Number::longValue));
 
-        TableColumn<StudyGroup, String> yCol = new TableColumn<>("Coord Y");
-        yCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getCoordinates() != null && cell.getValue().getCoordinates().y() != null
-                        ? cell.getValue().getCoordinates().y().toString()
-                        : ""
+        TableColumn<StudyGroup, Number> yCol = new TableColumn<>("Coord Y");
+        yCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(
+                c.getValue().getCoordinates().y() != null ? c.getValue().getCoordinates().y() : 0f
         ));
+        yCol.setComparator(Comparator.comparingDouble(Number::doubleValue));
 
-        TableColumn<StudyGroup, String> studentsCol = new TableColumn<>("Students");
-        studentsCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getStudentCount() != null ? cell.getValue().getStudentCount().toString() : ""
-        ));
+        TableColumn<StudyGroup, Number> studentsCol = new TableColumn<>("Students");
+        studentsCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getStudentCount()));
+        studentsCol.setComparator(Comparator.comparingInt(Number::intValue));
 
         TableColumn<StudyGroup, String> formCol = new TableColumn<>("Form");
         formCol.setCellValueFactory(cell -> new SimpleStringProperty(
@@ -206,10 +209,13 @@ public class MainView {
         Button exitBtn = new Button("Exit");
         Button helpBtn = new Button("Help");
         Button infoBtn = new Button("Info");
+        Button filterBtn = new Button("Filters");
+
+
         buttonBox.getChildren().addAll(
                 addBtn, updateBtn, removeBtn,
                 clearBtn, countBtn, exitBtn,
-                helpBtn, infoBtn
+                helpBtn, infoBtn, filterBtn
         );
 
         root.setBottom(buttonBox);
@@ -228,6 +234,7 @@ public class MainView {
         });
         helpBtn.setOnAction(e -> handleHelp());
         infoBtn.setOnAction(e -> handleInfo());
+        filterBtn.setOnAction(e -> filterDialog.showAndWait());
         userButton.setOnAction(e -> contextMenu.show(userButton, Side.BOTTOM, 0, 0));
         logoutItem.setOnAction(e -> {
             try {
@@ -297,6 +304,93 @@ public class MainView {
             }
         }).start();
     }
+
+    private void initFilterDialog() {
+        filterDialog = new Dialog<>();
+        filterDialog.initModality(Modality.APPLICATION_MODAL);
+        filterDialog.setTitle("Filter Settings");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(8);
+        grid.setVgap(8);
+        grid.setPadding(new Insets(20));
+
+        tfNameFilter   = new TextField();
+        tfMinStudents  = new TextField();
+        tfMaxStudents  = new TextField();
+        tfMinX         = new TextField();
+        tfMaxX         = new TextField();
+        tfMinY         = new TextField();
+        tfMaxY         = new TextField();
+        tfAdminFilter  = new TextField();
+
+        lvFormFilter = new ListView<>(FXCollections.observableArrayList(FormOfEducation.values()));
+        lvFormFilter.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        lvSemFilter  = new ListView<>(FXCollections.observableArrayList(Semester.values()));
+        lvSemFilter.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        grid.add(new Label("Name contains:"),      0, 0); grid.add(tfNameFilter,   1, 0);
+        grid.add(new Label("Min Students:"),      0, 1); grid.add(tfMinStudents,  1, 1);
+        grid.add(new Label("Max Students:"),      0, 2); grid.add(tfMaxStudents,  1, 2);
+        grid.add(new Label("Min X:"),             0, 3); grid.add(tfMinX,         1, 3);
+        grid.add(new Label("Max X:"),             0, 4); grid.add(tfMaxX,         1, 4);
+        grid.add(new Label("Min Y:"),             0, 5); grid.add(tfMinY,         1, 5);
+        grid.add(new Label("Max Y:"),             0, 6); grid.add(tfMaxY,         1, 6);
+        grid.add(new Label("Form of Education:"), 0, 7); grid.add(lvFormFilter,    1, 7);
+        grid.add(new Label("Semester:"),          0, 8); grid.add(lvSemFilter,     1, 8);
+        grid.add(new Label("Admin contains:"),    0, 9); grid.add(tfAdminFilter,   1, 9);
+
+        ButtonType apply = new ButtonType("Apply", ButtonBar.ButtonData.OK_DONE);
+        filterDialog.getDialogPane().getButtonTypes().addAll(apply, ButtonType.CANCEL);
+        filterDialog.getDialogPane().setContent(grid);
+        filterDialog.setResultConverter(btn -> {
+            if (btn == apply) applyFilter();
+            return null;
+        });
+    }
+
+
+
+
+    private void applyFilter() {
+        String nameC = tfNameFilter.getText().trim().toLowerCase();
+        int    minS = parseIntOr(tfMinStudents.getText(), Integer.MIN_VALUE);
+        int    maxS = parseIntOr(tfMaxStudents.getText(), Integer.MAX_VALUE);
+        double minX = parseDoubleOr(tfMinX.getText(), Double.NEGATIVE_INFINITY);
+        double maxX = parseDoubleOr(tfMaxX.getText(), Double.POSITIVE_INFINITY);
+        double minY = parseDoubleOr(tfMinY.getText(), Double.NEGATIVE_INFINITY);
+        double maxY = parseDoubleOr(tfMaxY.getText(), Double.POSITIVE_INFINITY);
+        String adminC = tfAdminFilter.getText().trim().toLowerCase();
+
+        List<FormOfEducation> forms = lvFormFilter.getSelectionModel().getSelectedItems();
+        List<Semester>        sems  = lvSemFilter.getSelectionModel().getSelectedItems();
+
+        List<StudyGroup> filtered = dataList.stream()
+                .filter(g -> {
+                    if (!nameC.isEmpty() && !g.getName().toLowerCase().contains(nameC)) return false;
+                    int s = g.getStudentCount(); if (s < minS || s > maxS) return false;
+                    Long x = g.getCoordinates().x();
+                    if (x != null && (x < minX || x > maxX)) return false;
+                    Float y = g.getCoordinates().y();
+                    if (y != null && (y < minY || y > maxY)) return false;
+                    if (!forms.isEmpty() && !forms.contains(g.getFormOfEducation())) return false;
+                    if (!sems.isEmpty()  && !sems.contains(g.getSemester()))         return false;
+                    if (!adminC.isEmpty() && !g.getGroupAdmin().name().toLowerCase().contains(adminC)) return false;
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        tableView.getItems().setAll(filtered);
+    }
+
+    private int parseIntOr(String t, int def) {
+        try { return Integer.parseInt(t.trim()); } catch(Exception e) { return def; }
+    }
+    private double parseDoubleOr(String t, double def) {
+        try { return Double.parseDouble(t.trim()); } catch(Exception e) { return def; }
+    }
+
+
 
     private void handleRemove() {
         TextInputDialog dialog = new TextInputDialog();
