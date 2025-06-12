@@ -1,6 +1,7 @@
 package io;
 
 import exceptions.IncorrectConstant;
+import exceptions.IncorrectValue;
 
 import static io.EnumInput.inputAssistant;
 
@@ -24,7 +25,7 @@ public class EnumTransform {
         } catch (IllegalArgumentException e) {
             DistributionOfTheOutputStream.println(new IncorrectConstant(enumType.getSimpleName()).getMessage());
         }
-        return inputAssistant(enumType);
+        throw new IncorrectValue(input);
     }
 
 }

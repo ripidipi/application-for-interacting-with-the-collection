@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -48,7 +49,8 @@ public class MainView {
     private TextField tfNameFilter, tfMinStudents, tfMaxStudents;
     private TextField tfMinX, tfMaxX, tfMinY, tfMaxY, tfAdminFilter;
     private final TabPane tabPane = new TabPane();
-    private Tab graphTab, tableTab;
+    private MapView mapView;
+    private Tab graphTab, tableTab, mapTab;
     private VBox formCheckboxes, semCheckboxes;
     private List<CheckBox> formCheckBoxesList, semCheckBoxesList;
     private String nameFilter = "";
@@ -216,7 +218,9 @@ public class MainView {
         tableTab = new Tab("Table", tableView);
         List<StudyGroup> groups = showAllGroupsParsed();
         graphTab = new Tab("Graph", new GraphView(groups, tableTab, tableView));
-        tabPane.getTabs().addAll(tableTab, graphTab);
+        this.mapView = new MapView(dataList, tableTab, tableView);
+        mapTab = new Tab("Map", this.mapView);
+        tabPane.getTabs().addAll(tableTab, graphTab, mapTab);
         root.setCenter(tabPane);
         Button userButton = new Button(currentUser);
         userButton.setStyle("-fx-background-color: transparent; -fx-text-fill: blue; -fx-font-weight: bold;");
@@ -294,15 +298,13 @@ public class MainView {
         }
     }
 
-    void handleRefresh() {
+    public void handleRefresh() {
         new Thread(() -> {
             try {
                 List<StudyGroup> list = ClientService.fetchAllGroups();
                 Platform.runLater(() -> {
                     dataList.setAll(list);
-                    List<TableColumn<StudyGroup, ?>> oldOrder = new ArrayList<>(tableView.getSortOrder());
                     applyStoredFilter();
-                    tableView.getSortOrder().setAll(oldOrder);
                     if (graphTab.getContent() instanceof GraphView graph) {
                         try {
                             graph.refreshGraph(tableView.getItems(), tableTab, tableView);
@@ -310,17 +312,16 @@ public class MainView {
                             throw new RuntimeException(e);
                         }
                     }
+                    if (mapTab.getContent() instanceof MapView mv) {
+                        mv.refreshMap(tableView.getItems());
+                    }
                 });
             } catch (Exception ex) {
-                Platform.runLater(() ->
-                        new Alert(Alert.AlertType.ERROR,
-                                "Failed to refresh data: " + ex.getMessage(),
-                                ButtonType.OK).showAndWait()
-                );
-                Logging.log(Logging.makeMessage(ex.getMessage(), ex.getStackTrace()));
+                Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait());
             }
         }).start();
     }
+
 
     private void initFilterDialog() {
         filterDialog = new Dialog<>();
