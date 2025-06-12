@@ -104,7 +104,6 @@ public class PrimitiveDataTransform {
             return null;
         }
         throw new IncorrectValue(input);
-
     }
 //                inputAssistant(name, type, emptyLineCheck,
 //                zeroValueCheck, dateInTheFutureCheck, formatter);
