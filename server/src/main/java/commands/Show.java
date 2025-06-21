@@ -31,7 +31,8 @@ public class Show implements Helpable, Command<Void> {
             }
 
             for (StudyGroup studyGroup : collection) {
-                DistributionOfTheOutputStream.println(studyGroup.toString());
+                if (studyGroup.getGroupAdmin().birthday() != null)
+                    DistributionOfTheOutputStream.println(studyGroup.toString());
             }
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));

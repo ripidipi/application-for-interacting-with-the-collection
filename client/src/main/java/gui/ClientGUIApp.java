@@ -8,7 +8,6 @@ import java.util.Locale;
 public class ClientGUIApp extends Application {
     @Override
     public void start(Stage primaryStage) {
-
         new LoginView(primaryStage).show();
     }
 

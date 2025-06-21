@@ -28,7 +28,7 @@ public class Update implements Helpable, Command<StudyGroup> {
     public void execute(StudyGroup studyGroup, boolean muteMode, Authentication auth) {
         try {
             lock.lock();
-            if (!CheckIsWithId.validateId(studyGroup.getId())) {
+            if (!CheckIsWithId.validateId(studyGroup.getId(), auth)) {
                 DistributionOfTheOutputStream.println("No objects with this id in the database");
                 return;
             }

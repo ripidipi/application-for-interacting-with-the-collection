@@ -1,5 +1,6 @@
 package io;
 
+import exceptions.IncorrectValue;
 import storage.SavingAnEmergencyStop;
 import commands.Exit;
 import exceptions.IncorrectConstant;
@@ -55,7 +56,7 @@ public class EnumInput {
             throw new RemoveOfTheNextSymbol("No more input");
         }
         String input = scanner.nextLine().trim().toUpperCase();
-        return TransformToEnum(enumType, input);
+        throw new IncorrectValue(input);
     }
 
     /**

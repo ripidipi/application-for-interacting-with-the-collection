@@ -1,13 +1,14 @@
 package gui;
+
 import collection.FormOfEducation;
 import collection.Semester;
 import commands.Commands;
 import exceptions.ServerDisconnect;
 import io.Authentication;
-import io.DistributionOfTheOutputStream;
 import io.Server;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -32,7 +33,6 @@ import javafx.animation.KeyFrame;
 import javafx.util.Duration;
 import service.Localization;
 import storage.Logging;
-import javafx.scene.control.TableView;
 import storage.Request;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -64,6 +64,7 @@ public class MainView {
     private List<FormOfEducation> selectedForms = new ArrayList<>();
     private List<Semester> selectedSems = new ArrayList<>();
     private ComboBox<Locale> localeCombo;
+    private ComboBox<GraphView.LayoutMode> layoutComboBox;
 
     public MainView(Stage stage) {
         this.stage = stage;
@@ -71,7 +72,6 @@ public class MainView {
     }
 
     public void show() throws Exception {
-
         stage.setTitle("StudyGroup Collection");
         BorderPane root = new BorderPane();
         tableView = new TableView<>();
@@ -94,20 +94,21 @@ public class MainView {
                 }
             }
         });
+
         ObservableList<Locale> locales = FXCollections.observableArrayList(
+                new Locale("en"),
                 new Locale("ru"),
                 new Locale("et"),
                 new Locale("lv"),
                 new Locale("es", "MX")
         );
         localeCombo = new ComboBox<>(locales);
-        localeCombo.setValue(Localization.getLocale());
-        localeCombo = new ComboBox<>(locales);
-        localeCombo.setValue(Localization.getLocale());
-
+        localeCombo.setValue(new Locale("en"));
         Callback<ListView<Locale>, ListCell<Locale>> cellFactory = lv -> new ListCell<>() {
             private final ImageView img = new ImageView();
-            @Override protected void updateItem(Locale item, boolean empty) {
+
+            @Override
+            protected void updateItem(Locale item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
@@ -118,6 +119,7 @@ public class MainView {
                             "/flags/" + code + ".png")), 24, 16, true, true);
                     img.setImage(flag);
                     String label = switch (code) {
+                        case "en" -> "English";
                         case "ru" -> "Русский";
                         case "et" -> "Eesti";
                         case "lv" -> "Latviešu";
@@ -129,7 +131,6 @@ public class MainView {
                 }
             }
         };
-        localeCombo.setValue(Locale.ENGLISH);
         localeCombo.setCellFactory(cellFactory);
         localeCombo.setButtonCell(cellFactory.call(null));
         localeCombo.valueProperty().addListener((obs, o, n) -> {
@@ -215,19 +216,22 @@ public class MainView {
                 studentsCol, formCol, semCol, adminNameCol,
                 adminBirthdayCol, adminHeightCol, adminPassportCol
         );
+
         tableTab = new Tab("Table", tableView);
         List<StudyGroup> groups = showAllGroupsParsed();
-        graphTab = new Tab("Graph", new GraphView(groups, tableTab, tableView));
+        graphTab = new Tab("Graph", new GraphView(groups, this, tableTab, tableView));
         this.mapView = new MapView(dataList, tableTab, tableView);
         mapTab = new Tab("Map", this.mapView);
         tabPane.getTabs().addAll(tableTab, graphTab, mapTab);
         root.setCenter(tabPane);
+
         Button userButton = new Button(currentUser);
         userButton.setStyle("-fx-background-color: transparent; -fx-text-fill: blue; -fx-font-weight: bold;");
         ContextMenu contextMenu = new ContextMenu();
         MenuItem stayItem = new MenuItem("Stay");
         MenuItem logoutItem = new MenuItem("Leave");
         contextMenu.getItems().addAll(stayItem, logoutItem);
+
         HBox buttonBox = new HBox(10);
         buttonBox.setPadding(new Insets(10));
         Button addBtn = new Button("Add");
@@ -247,10 +251,11 @@ public class MainView {
                 exitBtn, helpBtn, infoBtn,
                 execScriptBtn, filterBtn
         );
-
         root.setBottom(buttonBox);
+
         stage.setScene(new Scene(root, 1000, 600));
         stage.show();
+
         addBtn.setOnAction(e -> new AddDialog(this).show());
         updateBtn.setOnAction(e -> new UpdateDialog(this).show());
         removeBtn.setOnAction(e -> handleRemove());
@@ -265,6 +270,7 @@ public class MainView {
         infoBtn.setOnAction(e -> handleInfo());
         filterBtn.setOnAction(e -> filterDialog.showAndWait());
         removeAdminBtn.setOnAction(e -> new RemoveByAdminDialog(this).show());
+
         userButton.setOnAction(e -> contextMenu.show(userButton, Side.BOTTOM, 0, 0));
         logoutItem.setOnAction(e -> {
             try {
@@ -280,10 +286,21 @@ public class MainView {
                         "problem to leave " + ex.getMessage()).showAndWait());
             }
         });
-        HBox topBar = new HBox(10, localeCombo, userButton);
+
+        layoutComboBox = new ComboBox<>(FXCollections.observableArrayList(GraphView.LayoutMode.values()));
+        layoutComboBox.setValue(GraphView.LayoutMode.SCATTERED);
+        layoutComboBox.setPromptText("Layout");
+        layoutComboBox.valueProperty().addListener((ChangeListener<GraphView.LayoutMode>) (observable, oldValue, newValue) -> {
+            if (graphTab.getContent() instanceof GraphView graphView) {
+                graphView.setLayoutMode(newValue);
+            }
+        });
+
+        HBox topBar = new HBox(10, localeCombo, layoutComboBox, userButton);
         topBar.setPadding(new Insets(10));
         topBar.setAlignment(Pos.CENTER_RIGHT);
         root.setTop(topBar);
+
         handleRefresh();
         autoRefreshTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(2), ev -> handleRefresh())
@@ -306,11 +323,7 @@ public class MainView {
                     dataList.setAll(list);
                     applyStoredFilter();
                     if (graphTab.getContent() instanceof GraphView graph) {
-                        try {
-                            graph.refreshGraph(tableView.getItems(), tableTab, tableView);
-                        } catch (ServerDisconnect e) {
-                            throw new RuntimeException(e);
-                        }
+                        graph.refreshGraph(tableView.getItems(), this, tableTab, tableView);
                     }
                     if (mapTab.getContent() instanceof MapView mv) {
                         mv.refreshMap(tableView.getItems());
@@ -322,7 +335,6 @@ public class MainView {
         }).start();
     }
 
-
     private void initFilterDialog() {
         filterDialog = new Dialog<>();
         filterDialog.initModality(Modality.APPLICATION_MODAL);
@@ -331,6 +343,7 @@ public class MainView {
         grid.setHgap(8);
         grid.setVgap(8);
         grid.setPadding(new Insets(20));
+
         tfNameFilter = new TextField(nameFilter);
         tfMinStudents = new TextField(minStudents == Integer.MIN_VALUE ? "" : String.valueOf(minStudents));
         tfMaxStudents = new TextField(maxStudents == Integer.MAX_VALUE ? "" : String.valueOf(maxStudents));
@@ -339,6 +352,7 @@ public class MainView {
         tfMinY = new TextField(Double.isInfinite(minY) ? "" : String.valueOf(minY));
         tfMaxY = new TextField(Double.isInfinite(maxY) ? "" : String.valueOf(maxY));
         tfAdminFilter = new TextField(adminFilter);
+
         formCheckboxes = new VBox(5);
         formCheckboxes.setAlignment(Pos.CENTER_LEFT);
         formCheckBoxesList = new ArrayList<>();
@@ -348,6 +362,7 @@ public class MainView {
             formCheckBoxesList.add(cb);
             formCheckboxes.getChildren().add(cb);
         }
+
         semCheckboxes = new VBox(5);
         semCheckboxes.setAlignment(Pos.CENTER_LEFT);
         semCheckBoxesList = new ArrayList<>();
@@ -357,16 +372,28 @@ public class MainView {
             semCheckBoxesList.add(cb);
             semCheckboxes.getChildren().add(cb);
         }
-        grid.add(new Label("Name contains:"), 0, 0); grid.add(tfNameFilter, 1, 0);
-        grid.add(new Label("Min Students:"), 0, 1); grid.add(tfMinStudents, 1, 1);
-        grid.add(new Label("Max Students:"), 0, 2); grid.add(tfMaxStudents, 1, 2);
-        grid.add(new Label("Min X:"), 0, 3); grid.add(tfMinX, 1, 3);
-        grid.add(new Label("Max X:"), 0, 4); grid.add(tfMaxX, 1, 4);
-        grid.add(new Label("Min Y:"), 0, 5); grid.add(tfMinY, 1, 5);
-        grid.add(new Label("Max Y:"), 0, 6); grid.add(tfMaxY, 1, 6);
-        grid.add(new Label("Form of Education:"), 0, 7); grid.add(formCheckboxes, 1, 7);
-        grid.add(new Label("Semester:"), 0, 8); grid.add(semCheckboxes, 1, 8);
-        grid.add(new Label("Admin contains:"), 0, 9); grid.add(tfAdminFilter, 1, 9);
+
+        grid.add(new Label("Name contains:"), 0, 0);
+        grid.add(tfNameFilter, 1, 0);
+        grid.add(new Label("Min Students:"), 0, 1);
+        grid.add(tfMinStudents, 1, 1);
+        grid.add(new Label("Max Students:"), 0, 2);
+        grid.add(tfMaxStudents, 1, 2);
+        grid.add(new Label("Min X:"), 0, 3);
+        grid.add(tfMinX, 1, 3);
+        grid.add(new Label("Max X:"), 0, 4);
+        grid.add(tfMaxX, 1, 4);
+        grid.add(new Label("Min Y:"), 0, 5);
+        grid.add(tfMinY, 1, 5);
+        grid.add(new Label("Max Y:"), 0, 6);
+        grid.add(tfMaxY, 1, 6);
+        grid.add(new Label("Form of Education:"), 0, 7);
+        grid.add(formCheckboxes, 1, 7);
+        grid.add(new Label("Semester:"), 0, 8);
+        grid.add(semCheckboxes, 1, 8);
+        grid.add(new Label("Admin contains:"), 0, 9);
+        grid.add(tfAdminFilter, 1, 9);
+
         ButtonType apply = new ButtonType("Apply", ButtonBar.ButtonData.OK_DONE);
         ButtonType reset = new ButtonType("Reset", ButtonBar.ButtonData.OTHER);
         filterDialog.getDialogPane().getButtonTypes().addAll(apply, reset, ButtonType.CANCEL);
@@ -400,11 +427,16 @@ public class MainView {
             if (!nameFilter.isEmpty() && !g.getName().toLowerCase().contains(nameFilter)) return false;
             int s = g.getStudentCount();
             if (s < minStudents || s > maxStudents) return false;
-            Long x = g.getCoordinates().x(); if (x != null && (x < minX || x > maxX)) return false;
-            Float y = g.getCoordinates().y(); if (y != null && (y < minY || y > maxY)) return false;
-            if (!selectedForms.isEmpty() && (g.getFormOfEducation() == null || !selectedForms.contains(g.getFormOfEducation()))) return false;
-            if (!selectedSems.isEmpty() && (g.getSemester() == null || !selectedSems.contains(g.getSemester()))) return false;
-            if (!adminFilter.isEmpty() && (g.getGroupAdmin() == null || !g.getGroupAdmin().name().toLowerCase().contains(adminFilter))) return false;
+            Long x = g.getCoordinates().x();
+            if (x != null && (x < minX || x > maxX)) return false;
+            Float y = g.getCoordinates().y();
+            if (y != null && (y < minY || y > maxY)) return false;
+            if (!selectedForms.isEmpty() && (g.getFormOfEducation() == null || !selectedForms.contains(g.getFormOfEducation())))
+                return false;
+            if (!selectedSems.isEmpty() && (g.getSemester() == null || !selectedSems.contains(g.getSemester())))
+                return false;
+            if (!adminFilter.isEmpty() && (g.getGroupAdmin() == null || !g.getGroupAdmin().name().toLowerCase().contains(adminFilter)))
+                return false;
             return true;
         }).collect(Collectors.toList());
         tableView.getItems().setAll(filtered);
@@ -424,8 +456,10 @@ public class MainView {
         tfNameFilter.clear();
         tfMinStudents.clear();
         tfMaxStudents.clear();
-        tfMinX.clear(); tfMaxX.clear();
-        tfMinY.clear(); tfMaxY.clear();
+        tfMinX.clear();
+        tfMaxX.clear();
+        tfMinY.clear();
+        tfMaxY.clear();
         tfAdminFilter.clear();
         formCheckBoxesList.forEach(cb -> cb.setSelected(false));
         semCheckBoxesList.forEach(cb -> cb.setSelected(false));
@@ -433,11 +467,19 @@ public class MainView {
     }
 
     private int parseIntOr(String t, int def) {
-        try { return Integer.parseInt(t.trim()); } catch(Exception e) { return def; }
+        try {
+            return Integer.parseInt(t.trim());
+        } catch (Exception e) {
+            return def;
+        }
     }
 
     private double parseDoubleOr(String t, double def) {
-        try { return Double.parseDouble(t.trim()); } catch(Exception e) { return def; }
+        try {
+            return Double.parseDouble(t.trim());
+        } catch (Exception e) {
+            return def;
+        }
     }
 
     private void handleRemove() {
@@ -449,8 +491,7 @@ public class MainView {
             try {
                 int id = Integer.parseInt(idStr.trim());
                 String resp = ClientService.removeById(id);
-                new Alert(Alert.AlertType.INFORMATION, DistributionOfTheOutputStream.printFromServer(resp),
-                        ButtonType.OK).showAndWait();
+                new Alert(Alert.AlertType.INFORMATION, resp, ButtonType.OK).showAndWait();
                 handleRefresh();
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait();
@@ -461,8 +502,7 @@ public class MainView {
     private void handleClear() {
         try {
             String resp = ClientService.clearAll();
-            new Alert(Alert.AlertType.INFORMATION, DistributionOfTheOutputStream.printFromServer(resp),
-                    ButtonType.OK).showAndWait();
+            new Alert(Alert.AlertType.INFORMATION, resp, ButtonType.OK).showAndWait();
             handleRefresh();
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait();
@@ -477,7 +517,7 @@ public class MainView {
         new Thread(() -> {
             try {
                 String rawResponse = Server.interaction(new Request<>(Commands.HELP, null));
-                String response = DistributionOfTheOutputStream.printFromServer(rawResponse);
+                String response = rawResponse;
                 StringBuilder htmlContent = new StringBuilder("<html><body style='font-family: sans-serif;'>");
                 Arrays.stream(response.split("\n")).forEach(line -> {
                     if (line.matches("^\\s*\\w+.*")) {
@@ -500,7 +540,7 @@ public class MainView {
         new Thread(() -> {
             try {
                 String rawResponse = Server.interaction(new Request<>(Commands.INFO, null));
-                String response = DistributionOfTheOutputStream.printFromServer(rawResponse);
+                String response = rawResponse;
                 StringBuilder htmlContent = new StringBuilder("<html><body style='font-family: sans-serif;'>");
                 for (String line : response.split("\n")) {
                     if (line.toLowerCase().contains("количество элементов") || line.toLowerCase().contains("elements")) {
@@ -545,7 +585,6 @@ public class MainView {
         dialog.setScene(scene);
         dialog.showAndWait();
     }
-
 
     private void showError(String message) {
         new Alert(Alert.AlertType.ERROR, message, ButtonType.OK).showAndWait();

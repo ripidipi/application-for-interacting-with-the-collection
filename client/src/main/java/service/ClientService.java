@@ -59,8 +59,8 @@ public class ClientService {
             String name = m1.group(2);
 
             Matcher mc = Pattern.compile(
-                    "Coordinates \\{\\s*(?:X:\\s*(\\d+))?\\s*(?:Y:\\s*([\\d.]+))?\\s*\\}")
-                .matcher(line2);
+                            "Coordinates \\{\\s*(?:X:\\s*(\\d+))?\\s*(?:Y:\\s*([\\d.]+))?\\s*\\}")
+                    .matcher(line2);
             Long x = null;
             Float y = null;
             if (mc.find()) {
@@ -79,10 +79,10 @@ public class ClientService {
 
             Matcher ma = Pattern.compile(
                     "Group admin \\{\\s*name:\\s*(.*?)\\s+" +
-            "birthday:\\s*(\\d{2}/\\d{2}/\\d{4})" +
-                    "(?:\\s+height:\\s*([\\d.]*))?" +
-                            "\\s+passportID:\\s*(\\S+)\\s*}")
-                .matcher(line3);
+                            "birthday:\\s*(\\d{2}/\\d{2}/\\d{4})" +
+                            "(?:\\s+height:\\s*([\\d.]*))?" +
+                            "\\s+passportID:\\s*(\\S+)\\s*}"
+            ).matcher(line3);
 
             if (!ma.find()) throw new IllegalArgumentException("Invalid line3: " + line3);
             String adminName = ma.group(1).trim();
@@ -116,11 +116,14 @@ public class ClientService {
 
     /** Parses raw lines into StudyGroup list. */
     public static List<StudyGroup> showAllGroupsParsed() throws Exception {
-        List<String> lines = showAllRawLines();
+        List<String> entries = showAllRawLines();
         List<StudyGroup> list = new ArrayList<>();
-        for (int i = 0; i  < lines.size(); i++) {
-            String line = lines.get(i);
-            String[] split = line.split("\n");
+        for (String entry : entries) {
+            String[] split = entry.split("\n");
+            if (split.length < 3) {
+                Logging.log("Skipping malformed entry: expected 3 lines but got " + split.length + ". Entry: " + entry);
+                continue;
+            }
             StudyGroup g = parseThreeLinesToGroup(split[0], split[1], split[2]);
             if (g != null) list.add(g);
         }

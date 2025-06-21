@@ -71,8 +71,6 @@ public class ServerApp {
     }
 
 
-
-
     private static void initializeApplication() {
         Collection.getInstance();
         Help help = Help.getInstance();

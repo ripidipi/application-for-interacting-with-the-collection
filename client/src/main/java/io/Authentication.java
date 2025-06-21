@@ -23,7 +23,7 @@ public class Authentication {
         instance = null;
     }
 
-    public static boolean login(String username, String plainPassword) throws Exception {
+    public static boolean login(String username, String plainPassword) {
         String hash = makeHash(plainPassword);
         instance = new Authentication(username, hash);
         try {
@@ -37,10 +37,14 @@ public class Authentication {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
             instance = null;
             return false;
+        } catch (Exception e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+            instance = null;
+            return false;
         }
     }
 
-    public static boolean register(String username, String plainPassword) throws Exception {
+    public static boolean register(String username, String plainPassword) {
         String hash = makeHash(plainPassword);
         instance = new Authentication(username, hash);
         try {
@@ -51,6 +55,10 @@ public class Authentication {
             }
             return success;
         } catch (ServerDisconnect e) {
+            Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+            instance = null;
+            return false;
+        } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
             instance = null;
             return false;
@@ -65,17 +73,21 @@ public class Authentication {
         return passwordHash;
     }
 
-    public static String makeHash(String arg) throws Exception {
-        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-        byte[] encodedHash = digest.digest(arg.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        StringBuilder hexString = new StringBuilder(2 * encodedHash.length);
-        for (byte b : encodedHash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
+    public static String makeHash(String arg) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(arg.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder(2 * encodedHash.length);
+            for (byte b : encodedHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
             }
-            hexString.append(hex);
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return hexString.toString();
     }
 }

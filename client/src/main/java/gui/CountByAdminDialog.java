@@ -6,28 +6,21 @@ import collection.Person;
 import io.PrimitiveDataTransform;
 import io.Authentication;
 import exceptions.EmptyLine;
-import exceptions.IncorrectValue;
 import exceptions.DataInTheFuture;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ButtonType;
-import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ResourceBundle;
+
+import static service.Localization.bundle;
 
 public class CountByAdminDialog {
     private final MainView parent;
+    private final ResourceBundle msg = bundle();
 
     public CountByAdminDialog(MainView parent) {
         this.parent = parent;
@@ -36,8 +29,8 @@ public class CountByAdminDialog {
     public void show() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Count by Admin");
-        dialog.setHeaderText("Enter administrator details");
+        dialog.setTitle(msg.getString("countAdmin.title"));
+        dialog.setHeaderText(msg.getString("countAdmin.header"));
 
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10));
@@ -49,43 +42,51 @@ public class CountByAdminDialog {
         TextField adminHeightField = new TextField();
         TextField adminPassportField = new TextField();
 
-        grid.add(new Label("Admin Name:"), 0, 0);
+        grid.add(new Label(msg.getString("countAdmin.label.name")), 0, 0);
         grid.add(adminNameField, 1, 0);
-        grid.add(new Label("Birthday (dd/MM/yyyy):"), 0, 1);
+        grid.add(new Label(msg.getString("countAdmin.label.birthday")), 0, 1);
         grid.add(birthdayPicker, 1, 1);
-        grid.add(new Label("Height (optional):"), 0, 2);
+        grid.add(new Label(msg.getString("countAdmin.label.height")), 0, 2);
         grid.add(adminHeightField, 1, 2);
-        grid.add(new Label("PassportID:"), 0, 3);
+        grid.add(new Label(msg.getString("countAdmin.label.passport")), 0, 3);
         grid.add(adminPassportField, 1, 3);
 
-        ButtonType countBtn = new ButtonType("Count");
+        ButtonType countBtn = new ButtonType(msg.getString("countAdmin.button.count"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, countBtn);
         dialog.getDialogPane().setContent(grid);
 
         dialog.setResultConverter(button -> {
             if (button == countBtn) {
                 try {
-                    String name = adminNameField.getText().trim();
+                    String name   = adminNameField.getText().trim();
                     LocalDate date = birthdayPicker.getValue();
-                    String heightTxt = adminHeightField.getText().trim();
-                    String passport = adminPassportField.getText().trim();
 
-                    if (name.isEmpty()) throw new EmptyLine("admin name");
-                    if (date == null) throw new EmptyLine("birthday");
+                    if (name.isEmpty()) {
+                        throw new EmptyLine(msg.getString("countAdmin.error.nameEmpty"));
+                    }
+                    if (date == null) {
+                        throw new EmptyLine(msg.getString("countAdmin.error.birthdayEmpty"));
+                    }
 
                     LocalDateTime birthday = date.atStartOfDay();
                     if (birthday.isAfter(LocalDateTime.now())) {
-                        throw new DataInTheFuture("birthday");
+                        throw new DataInTheFuture(msg.getString("countAdmin.error.futureDate"));
                     }
 
+                    String heightTxt = adminHeightField.getText().trim();
                     Double height = heightTxt.isEmpty() ? null : PrimitiveDataTransform.transformToRequiredType(
-                            "admin height", Double.class, false,
-                            true, false, heightTxt, false, null, false
+                            msg.getString("countAdmin.label.height"), Double.class,
+                            false, true, false,
+                            heightTxt, false, null, false
                     );
+
+                    String passport = adminPassportField.getText().trim();
 
                     Person admin = new Person(name, birthday, height, passport);
                     String response = ClientService.countByAdmin(admin);
-                    new Alert(Alert.AlertType.INFORMATION, DistributionOfTheOutputStream.printFromServer(response), ButtonType.OK).showAndWait();
+                    new Alert(Alert.AlertType.INFORMATION,
+                            DistributionOfTheOutputStream.printFromServer(response), ButtonType.OK
+                    ).showAndWait();
                     parent.handleRefresh();
                 } catch (Exception ex) {
                     new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait();

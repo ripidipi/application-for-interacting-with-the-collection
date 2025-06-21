@@ -22,22 +22,24 @@ public class CheckIsWithId implements Command<Integer> {
      * @return The parsed ID as an Integer, if it exists in the collection.
      * @throws RuntimeException If the ID is invalid or does not exist in the collection.
      */
-    static Boolean validateId(Integer id) throws RuntimeException {
+    static Boolean validateId(Integer id, Authentication auth) throws RuntimeException {
+        lock.lock();
         try {
-            lock.lock();
-            TreeSet<StudyGroup> collection = Collection.getInstance().getCollection();
-            return collection.stream()
-                    .anyMatch(studyGroup -> studyGroup.getId().equals(id));
+            String currentUser = auth.name();
+            return Collection.getInstance().getCollection().stream()
+                    .filter(studyGroup -> studyGroup.getId().equals(id))
+                    .anyMatch(studyGroup -> studyGroup.getOwner().equals(currentUser));
         } catch (Exception e) {
             Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
+            throw new RuntimeException("Validation failed: " + e.getMessage());
         } finally {
             lock.unlock();
         }
-        throw new RuntimeException("Validation failed");
     }
 
 
+
     public void execute(Integer arg, boolean muteMode, Authentication auth) {
-        DistributionOfTheOutputStream.println(validateId(arg).toString());
+        DistributionOfTheOutputStream.println(validateId(arg, auth).toString());
     }
 }

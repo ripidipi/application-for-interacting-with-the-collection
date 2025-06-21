@@ -39,15 +39,16 @@ public class Server {
         return new ClientRequest(clientAddress, objectIn);
     }
 
-    public static void sendResponse(DatagramChannel server,SocketAddress address) throws IOException {
+    public static void sendResponse(DatagramChannel server, SocketAddress address) throws java.io.IOException {
         String response = PreparingOfOutputStream.getOutMessage();
-        int CHUNK_SIZE = 100000;
-        while (!response.isEmpty()) {
-            int len = Math.min(CHUNK_SIZE, response.length());
-            String sentMessage = response.substring(0, len);
-            ByteBuffer buf = ByteBuffer.wrap(sentMessage.getBytes(StandardCharsets.UTF_8));
+        byte[] data = response.getBytes(StandardCharsets.UTF_8);
+        final int CHUNK_SIZE = 1000;
+        int offset = 0;
+        while (offset < data.length) {
+            int len = Math.min(CHUNK_SIZE, data.length - offset);
+            ByteBuffer buf = ByteBuffer.wrap(data, offset, len);
             server.send(buf, address);
-            response = response.substring(len);
+            offset += len;
         }
     }
 }
