@@ -13,7 +13,7 @@ import java.util.ResourceBundle;
 
 public class Localization {
     private static final ObjectProperty<Locale> locale =
-            new SimpleObjectProperty<>(Locale.getDefault());
+            new SimpleObjectProperty<>(new Locale("en"));
 
     public static ObjectProperty<Locale> localeProperty() {
         return locale;

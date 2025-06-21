@@ -44,7 +44,6 @@ public class MainView {
     private TableView<StudyGroup> tableView;
     private ObservableList<StudyGroup> dataList;
     private Timeline autoRefreshTimeline;
-    private List<TableColumn<StudyGroup, ?>> savedSortOrder;
     private Dialog<Void> filterDialog;
     private TextField tfNameFilter, tfMinStudents, tfMaxStudents;
     private TextField tfMinX, tfMaxX, tfMinY, tfMaxY, tfAdminFilter;
@@ -65,14 +64,21 @@ public class MainView {
     private List<Semester> selectedSems = new ArrayList<>();
     private ComboBox<Locale> localeCombo;
     private ComboBox<GraphView.LayoutMode> layoutComboBox;
+    private ResourceBundle bundle;
+
+    private Button addBtn, execScriptBtn, updateBtn, removeBtn, removeAdminBtn;
+    private Button clearBtn, countBtn, exitBtn, helpBtn, infoBtn, filterBtn;
+    private MenuItem stayItem, logoutItem;
 
     public MainView(Stage stage) {
         this.stage = stage;
+        this.bundle = Localization.bundle();
         initFilterDialog();
     }
 
     public void show() throws Exception {
-        stage.setTitle("StudyGroup Collection");
+        bundle = Localization.bundle();
+        stage.setTitle(bundle.getString("main.title"));
         BorderPane root = new BorderPane();
         tableView = new TableView<>();
         dataList = FXCollections.observableArrayList();
@@ -89,7 +95,8 @@ public class MainView {
                         }
                     } catch (ServerDisconnect e) {
                         Logging.log(Logging.makeMessage(e.getMessage(), e.getStackTrace()));
-                        Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, "Permission check failed").showAndWait());
+                        Platform.runLater(() -> new Alert(Alert.AlertType.ERROR,
+                                bundle.getString("main.alert.permissionFailed")).showAndWait());
                     }
                 }
             }
@@ -103,7 +110,7 @@ public class MainView {
                 new Locale("es", "MX")
         );
         localeCombo = new ComboBox<>(locales);
-        localeCombo.setValue(new Locale("en"));
+        localeCombo.setValue(Localization.getLocale());
         Callback<ListView<Locale>, ListCell<Locale>> cellFactory = lv -> new ListCell<>() {
             private final ImageView img = new ImageView();
 
@@ -134,7 +141,11 @@ public class MainView {
         localeCombo.setCellFactory(cellFactory);
         localeCombo.setButtonCell(cellFactory.call(null));
         localeCombo.valueProperty().addListener((obs, o, n) -> {
-            if (n != null) Localization.setLocale(n);
+            if (n != null) {
+                Localization.setLocale(n);
+                bundle = Localization.bundle();
+                updateUI();
+            }
         });
 
         String currentUser = Authentication.getInstance().getUsername();
@@ -158,93 +169,36 @@ public class MainView {
             }
         });
 
-        TableColumn<StudyGroup, String> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getId() != null ? cell.getValue().getId().toString() : ""
-        ));
-        TableColumn<StudyGroup, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getName() != null ? cell.getValue().getName() : ""
-        ));
-        TableColumn<StudyGroup, Number> xCol = new TableColumn<>("Coord X");
-        xCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(
-                c.getValue().getCoordinates().x() != null ? c.getValue().getCoordinates().x() : 0L
-        ));
-        xCol.setComparator(Comparator.comparingLong(Number::longValue));
-        TableColumn<StudyGroup, Number> yCol = new TableColumn<>("Coord Y");
-        yCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(
-                c.getValue().getCoordinates().y() != null ? c.getValue().getCoordinates().y() : 0f
-        ));
-        yCol.setComparator(Comparator.comparingDouble(Number::doubleValue));
-        TableColumn<StudyGroup, Number> studentsCol = new TableColumn<>("Students");
-        studentsCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getStudentCount()));
-        studentsCol.setComparator(Comparator.comparingInt(Number::intValue));
-        TableColumn<StudyGroup, String> formCol = new TableColumn<>("Form");
-        formCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getFormOfEducation() != null ? cell.getValue().getFormOfEducation().name() : ""
-        ));
-        TableColumn<StudyGroup, String> semCol = new TableColumn<>("Semester");
-        semCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getSemester() != null ? cell.getValue().getSemester().name() : ""
-        ));
-        TableColumn<StudyGroup, String> adminNameCol = new TableColumn<>("Admin Name");
-        adminNameCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().name() != null
-                        ? cell.getValue().getGroupAdmin().name()
-                        : ""
-        ));
-        TableColumn<StudyGroup, String> adminBirthdayCol = new TableColumn<>("Admin Birthday");
-        adminBirthdayCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().birthday() != null
-                        ? cell.getValue().getGroupAdmin().birthday().format(DateTimeFormatter.ISO_DATE)
-                        : ""
-        ));
-        TableColumn<StudyGroup, String> adminHeightCol = new TableColumn<>("Admin Height");
-        adminHeightCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().height() != null
-                        ? cell.getValue().getGroupAdmin().height().toString()
-                        : ""
-        ));
-        TableColumn<StudyGroup, String> adminPassportCol = new TableColumn<>("Admin Passport");
-        adminPassportCol.setCellValueFactory(cell -> new SimpleStringProperty(
-                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().passportID() != null
-                        ? cell.getValue().getGroupAdmin().passportID()
-                        : ""
-        ));
-        tableView.getColumns().addAll(
-                idCol, nameCol, xCol, yCol,
-                studentsCol, formCol, semCol, adminNameCol,
-                adminBirthdayCol, adminHeightCol, adminPassportCol
-        );
+        createColumns();
 
-        tableTab = new Tab("Table", tableView);
+        tableTab = new Tab(bundle.getString("main.tab.table"), tableView);
         List<StudyGroup> groups = showAllGroupsParsed();
-        graphTab = new Tab("Graph", new GraphView(groups, this, tableTab, tableView));
+        graphTab = new Tab(bundle.getString("main.tab.graph"), new GraphView(groups, this, tableTab, tableView));
         this.mapView = new MapView(dataList, tableTab, tableView);
-        mapTab = new Tab("Map", this.mapView);
+        mapTab = new Tab(bundle.getString("main.tab.map"), this.mapView);
         tabPane.getTabs().addAll(tableTab, graphTab, mapTab);
         root.setCenter(tabPane);
 
         Button userButton = new Button(currentUser);
         userButton.setStyle("-fx-background-color: transparent; -fx-text-fill: blue; -fx-font-weight: bold;");
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem stayItem = new MenuItem("Stay");
-        MenuItem logoutItem = new MenuItem("Leave");
+        stayItem = new MenuItem(bundle.getString("main.context.stay"));
+        logoutItem = new MenuItem(bundle.getString("main.context.leave"));
         contextMenu.getItems().addAll(stayItem, logoutItem);
 
         HBox buttonBox = new HBox(10);
         buttonBox.setPadding(new Insets(10));
-        Button addBtn = new Button("Add");
-        Button execScriptBtn = new Button("Execute Script");
-        Button updateBtn = new Button("Update by ID");
-        Button removeBtn = new Button("Remove by ID");
-        Button removeAdminBtn = new Button("Remove by Admin");
-        Button clearBtn = new Button("Clear");
-        Button countBtn = new Button("Count by Admin");
-        Button exitBtn = new Button("Exit");
-        Button helpBtn = new Button("Help");
-        Button infoBtn = new Button("Info");
-        Button filterBtn = new Button("Filters");
+        addBtn = new Button(bundle.getString("main.button.add"));
+        execScriptBtn = new Button(bundle.getString("main.button.execScript"));
+        updateBtn = new Button(bundle.getString("main.button.update"));
+        removeBtn = new Button(bundle.getString("main.button.remove"));
+        removeAdminBtn = new Button(bundle.getString("main.button.removeAdmin"));
+        clearBtn = new Button(bundle.getString("main.button.clear"));
+        countBtn = new Button(bundle.getString("main.button.count"));
+        exitBtn = new Button(bundle.getString("main.button.exit"));
+        helpBtn = new Button(bundle.getString("main.button.help"));
+        infoBtn = new Button(bundle.getString("main.button.info"));
+        filterBtn = new Button(bundle.getString("main.button.filters"));
         buttonBox.getChildren().addAll(
                 addBtn, updateBtn, removeBtn,
                 removeAdminBtn, clearBtn, countBtn,
@@ -283,13 +237,35 @@ public class MainView {
             } catch (Exception ex) {
                 Logging.log(Logging.makeMessage(ex.getMessage(), ex.getStackTrace()));
                 Platform.runLater(() -> new Alert(Alert.AlertType.ERROR,
-                        "problem to leave " + ex.getMessage()).showAndWait());
+                        bundle.getString("main.alert.logoutFailed") + ex.getMessage()).showAndWait());
             }
         });
 
         layoutComboBox = new ComboBox<>(FXCollections.observableArrayList(GraphView.LayoutMode.values()));
         layoutComboBox.setValue(GraphView.LayoutMode.SCATTERED);
-        layoutComboBox.setPromptText("Layout");
+        layoutComboBox.setButtonCell(new ListCell<GraphView.LayoutMode>() {
+            @Override
+            protected void updateItem(GraphView.LayoutMode item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(localizeLayoutMode(item));
+                }
+            }
+        });
+        layoutComboBox.setCellFactory(lv -> new ListCell<GraphView.LayoutMode>() {
+            @Override
+            protected void updateItem(GraphView.LayoutMode item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(localizeLayoutMode(item));
+                }
+            }
+        });
+        layoutComboBox.setPromptText(bundle.getString("main.layout.prompt"));
         layoutComboBox.valueProperty().addListener((ChangeListener<GraphView.LayoutMode>) (observable, oldValue, newValue) -> {
             if (graphTab.getContent() instanceof GraphView graphView) {
                 graphView.setLayoutMode(newValue);
@@ -309,36 +285,182 @@ public class MainView {
         autoRefreshTimeline.play();
     }
 
-    private void stopAutoRefresh() {
-        if (autoRefreshTimeline != null) {
-            autoRefreshTimeline.stop();
-        }
+    private String localizeLayoutMode(GraphView.LayoutMode mode) {
+        if (mode == null) return "";
+        return switch (mode) {
+            case SCATTERED -> bundle.getString("main.layout.scattered");
+            case CIRCULAR -> bundle.getString("main.layout.circular");
+        };
     }
 
-    public void handleRefresh() {
-        new Thread(() -> {
-            try {
-                List<StudyGroup> list = ClientService.fetchAllGroups();
-                Platform.runLater(() -> {
-                    dataList.setAll(list);
-                    applyStoredFilter();
-                    if (graphTab.getContent() instanceof GraphView graph) {
-                        graph.refreshGraph(tableView.getItems(), this, tableTab, tableView);
-                    }
-                    if (mapTab.getContent() instanceof MapView mv) {
-                        mv.refreshMap(tableView.getItems());
-                    }
-                });
-            } catch (Exception ex) {
-                Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait());
+    private void createColumns() {
+        tableView.getColumns().clear();
+
+        TableColumn<StudyGroup, String> idCol = new TableColumn<>(bundle.getString("main.column.id"));
+        idCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getId() != null ? cell.getValue().getId().toString() : ""
+        ));
+        idCol.setComparator(Comparator.comparingInt(id -> {
+            if (id == null || id.isEmpty()) return 0;
+            return Integer.parseInt(id);
+        }));
+
+        TableColumn<StudyGroup, String> nameCol = new TableColumn<>(bundle.getString("main.column.name"));
+        nameCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getName() != null ? cell.getValue().getName() : ""
+        ));
+
+        TableColumn<StudyGroup, Number> xCol = new TableColumn<>(bundle.getString("main.column.coordX"));
+        xCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(
+                c.getValue().getCoordinates().x() != null ? c.getValue().getCoordinates().x() : 0L
+        ));
+        xCol.setComparator(Comparator.comparingLong(Number::longValue));
+
+        TableColumn<StudyGroup, Number> yCol = new TableColumn<>(bundle.getString("main.column.coordY"));
+        yCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(
+                c.getValue().getCoordinates().y() != null ? c.getValue().getCoordinates().y() : 0f
+        ));
+        yCol.setComparator(Comparator.comparingDouble(Number::doubleValue));
+
+        TableColumn<StudyGroup, Number> studentsCol = new TableColumn<>(bundle.getString("main.column.students"));
+        studentsCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getStudentCount()));
+        studentsCol.setComparator(Comparator.comparingInt(Number::intValue));
+
+        TableColumn<StudyGroup, String> formCol = new TableColumn<>(bundle.getString("main.column.form"));
+        formCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getFormOfEducation() != null ? cell.getValue().getFormOfEducation().name() : ""
+        ));
+
+        TableColumn<StudyGroup, String> semCol = new TableColumn<>(bundle.getString("main.column.semester"));
+        semCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getSemester() != null ? cell.getValue().getSemester().name() : ""
+        ));
+
+        TableColumn<StudyGroup, String> adminNameCol = new TableColumn<>(bundle.getString("main.column.adminName"));
+        adminNameCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().name() != null
+                        ? cell.getValue().getGroupAdmin().name()
+                        : ""
+        ));
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        TableColumn<StudyGroup, String> adminBirthdayCol = new TableColumn<>(bundle.getString("main.column.adminBirthday"));
+        adminBirthdayCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().birthday() != null
+                        ? cell.getValue().getGroupAdmin().birthday().format(fmt)
+                        : ""
+        ));
+
+        TableColumn<StudyGroup, String> adminHeightCol = new TableColumn<>(bundle.getString("main.column.adminHeight"));
+        adminHeightCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().height() != null
+                        ? cell.getValue().getGroupAdmin().height().toString()
+                        : ""
+        ));
+        adminHeightCol.setComparator(Comparator.comparingDouble(height -> {
+            if (height == null || height.isEmpty()) return 0.0;
+            return Double.parseDouble(height);
+        }));
+
+        TableColumn<StudyGroup, String> adminPassportCol = new TableColumn<>(bundle.getString("main.column.adminPassport"));
+        adminPassportCol.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getGroupAdmin() != null && cell.getValue().getGroupAdmin().passportID() != null
+                        ? cell.getValue().getGroupAdmin().passportID()
+                        : ""
+        ));
+
+        tableView.getColumns().addAll(
+                idCol, nameCol, xCol, yCol,
+                studentsCol, formCol, semCol, adminNameCol,
+                adminBirthdayCol, adminHeightCol, adminPassportCol
+        );
+    }
+
+    private void updateUI() {
+        bundle = Localization.bundle();
+        stage.setTitle(bundle.getString("main.title"));
+
+        tableTab.setText(bundle.getString("main.tab.table"));
+        graphTab.setText(bundle.getString("main.tab.graph"));
+        mapTab.setText(bundle.getString("main.tab.map"));
+
+        addBtn.setText(bundle.getString("main.button.add"));
+        execScriptBtn.setText(bundle.getString("main.button.execScript"));
+        updateBtn.setText(bundle.getString("main.button.update"));
+        removeBtn.setText(bundle.getString("main.button.remove"));
+        removeAdminBtn.setText(bundle.getString("main.button.removeAdmin"));
+        clearBtn.setText(bundle.getString("main.button.clear"));
+        countBtn.setText(bundle.getString("main.button.count"));
+        exitBtn.setText(bundle.getString("main.button.exit"));
+        helpBtn.setText(bundle.getString("main.button.help"));
+        infoBtn.setText(bundle.getString("main.button.info"));
+        filterBtn.setText(bundle.getString("main.button.filters"));
+
+        stayItem.setText(bundle.getString("main.context.stay"));
+        logoutItem.setText(bundle.getString("main.context.leave"));
+
+        layoutComboBox.setButtonCell(new ListCell<GraphView.LayoutMode>() {
+            @Override
+            protected void updateItem(GraphView.LayoutMode item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(localizeLayoutMode(item));
+                }
             }
-        }).start();
+        });
+        layoutComboBox.setPromptText(bundle.getString("main.layout.prompt"));
+        GraphView.LayoutMode current = layoutComboBox.getValue();
+        layoutComboBox.setValue(null);
+        layoutComboBox.setValue(current);
+
+        createColumns();
+        updateFilterDialog();
+    }
+
+    private void updateFilterDialog() {
+        filterDialog.setTitle(bundle.getString("main.filter.title"));
+        GridPane grid = (GridPane) filterDialog.getDialogPane().getContent();
+        grid.getChildren().clear();
+
+        grid.add(new Label(bundle.getString("main.filter.name")), 0, 0);
+        grid.add(tfNameFilter, 1, 0);
+        grid.add(new Label(bundle.getString("main.filter.minStudents")), 0, 1);
+        grid.add(tfMinStudents, 1, 1);
+        grid.add(new Label(bundle.getString("main.filter.maxStudents")), 0, 2);
+        grid.add(tfMaxStudents, 1, 2);
+        grid.add(new Label(bundle.getString("main.filter.minX")), 0, 3);
+        grid.add(tfMinX, 1, 3);
+        grid.add(new Label(bundle.getString("main.filter.maxX")), 0, 4);
+        grid.add(tfMaxX, 1, 4);
+        grid.add(new Label(bundle.getString("main.filter.minY")), 0, 5);
+        grid.add(tfMinY, 1, 5);
+        grid.add(new Label(bundle.getString("main.filter.maxY")), 0, 6);
+        grid.add(tfMaxY, 1, 6);
+        grid.add(new Label(bundle.getString("main.filter.form")), 0, 7);
+        grid.add(formCheckboxes, 1, 7);
+        grid.add(new Label(bundle.getString("main.filter.semester")), 0, 8);
+        grid.add(semCheckboxes, 1, 8);
+        grid.add(new Label(bundle.getString("main.filter.admin")), 0, 9);
+        grid.add(tfAdminFilter, 1, 9);
+
+        ButtonBar buttonBar = (ButtonBar) filterDialog.getDialogPane().lookup(".button-bar");
+        for (Node node : buttonBar.getButtons()) {
+            if (node instanceof Button button) {
+                if (button.getText().equals("Apply")) {
+                    button.setText(bundle.getString("main.filter.apply"));
+                } else if (button.getText().equals("Reset")) {
+                    button.setText(bundle.getString("main.filter.reset"));
+                }
+            }
+        }
     }
 
     private void initFilterDialog() {
         filterDialog = new Dialog<>();
         filterDialog.initModality(Modality.APPLICATION_MODAL);
-        filterDialog.setTitle("Filter Settings");
+        filterDialog.setTitle(bundle.getString("main.filter.title"));
         GridPane grid = new GridPane();
         grid.setHgap(8);
         grid.setVgap(8);
@@ -373,29 +495,29 @@ public class MainView {
             semCheckboxes.getChildren().add(cb);
         }
 
-        grid.add(new Label("Name contains:"), 0, 0);
+        grid.add(new Label(bundle.getString("main.filter.name")), 0, 0);
         grid.add(tfNameFilter, 1, 0);
-        grid.add(new Label("Min Students:"), 0, 1);
+        grid.add(new Label(bundle.getString("main.filter.minStudents")), 0, 1);
         grid.add(tfMinStudents, 1, 1);
-        grid.add(new Label("Max Students:"), 0, 2);
+        grid.add(new Label(bundle.getString("main.filter.maxStudents")), 0, 2);
         grid.add(tfMaxStudents, 1, 2);
-        grid.add(new Label("Min X:"), 0, 3);
+        grid.add(new Label(bundle.getString("main.filter.minX")), 0, 3);
         grid.add(tfMinX, 1, 3);
-        grid.add(new Label("Max X:"), 0, 4);
+        grid.add(new Label(bundle.getString("main.filter.maxX")), 0, 4);
         grid.add(tfMaxX, 1, 4);
-        grid.add(new Label("Min Y:"), 0, 5);
+        grid.add(new Label(bundle.getString("main.filter.minY")), 0, 5);
         grid.add(tfMinY, 1, 5);
-        grid.add(new Label("Max Y:"), 0, 6);
+        grid.add(new Label(bundle.getString("main.filter.maxY")), 0, 6);
         grid.add(tfMaxY, 1, 6);
-        grid.add(new Label("Form of Education:"), 0, 7);
+        grid.add(new Label(bundle.getString("main.filter.form")), 0, 7);
         grid.add(formCheckboxes, 1, 7);
-        grid.add(new Label("Semester:"), 0, 8);
+        grid.add(new Label(bundle.getString("main.filter.semester")), 0, 8);
         grid.add(semCheckboxes, 1, 8);
-        grid.add(new Label("Admin contains:"), 0, 9);
+        grid.add(new Label(bundle.getString("main.filter.admin")), 0, 9);
         grid.add(tfAdminFilter, 1, 9);
 
-        ButtonType apply = new ButtonType("Apply", ButtonBar.ButtonData.OK_DONE);
-        ButtonType reset = new ButtonType("Reset", ButtonBar.ButtonData.OTHER);
+        ButtonType apply = new ButtonType(bundle.getString("main.filter.apply"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType reset = new ButtonType(bundle.getString("main.filter.reset"), ButtonBar.ButtonData.OTHER);
         filterDialog.getDialogPane().getButtonTypes().addAll(apply, reset, ButtonType.CANCEL);
         filterDialog.getDialogPane().setContent(grid);
         filterDialog.setResultConverter(btn -> {
@@ -484,9 +606,9 @@ public class MainView {
 
     private void handleRemove() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Remove by ID");
+        dialog.setTitle(bundle.getString("main.dialog.remove.title"));
         dialog.setHeaderText(null);
-        dialog.setContentText("Enter ID:");
+        dialog.setContentText(bundle.getString("main.dialog.remove.content"));
         dialog.showAndWait().ifPresent(idStr -> {
             try {
                 int id = Integer.parseInt(idStr.trim());
@@ -529,7 +651,7 @@ public class MainView {
                     htmlContent.append("<br>");
                 });
                 htmlContent.append("</body></html>");
-                Platform.runLater(() -> showHtmlDialog("Help", htmlContent.toString()));
+                Platform.runLater(() -> showHtmlDialog(bundle.getString("main.help.title"), htmlContent.toString()));
             } catch (Exception ex) {
                 Platform.runLater(() -> showError("Failed to fetch help: " + ex.getMessage()));
             }
@@ -575,7 +697,7 @@ public class MainView {
     private void showMiniHtmlDialog(String htmlContent) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Info");
+        dialog.setTitle(bundle.getString("main.info.title"));
         WebView webView = new WebView();
         webView.setPrefSize(300, 100);
         webView.getEngine().loadContent(htmlContent);
@@ -588,5 +710,44 @@ public class MainView {
 
     private void showError(String message) {
         new Alert(Alert.AlertType.ERROR, message, ButtonType.OK).showAndWait();
+    }
+
+    private void stopAutoRefresh() {
+        if (autoRefreshTimeline != null) {
+            autoRefreshTimeline.stop();
+        }
+    }
+
+    public void handleRefresh() {
+        List<TableColumn<StudyGroup, ?>> savedSortOrder = new ArrayList<>(tableView.getSortOrder());
+        boolean[] sortDirections = new boolean[savedSortOrder.size()];
+        for (int i = 0; i < savedSortOrder.size(); i++) {
+            sortDirections[i] = savedSortOrder.get(i).getSortType() == TableColumn.SortType.ASCENDING;
+        }
+
+        new Thread(() -> {
+            try {
+                List<StudyGroup> list = ClientService.fetchAllGroups();
+                Platform.runLater(() -> {
+                    dataList.setAll(list);
+                    applyStoredFilter();
+
+                    tableView.getSortOrder().setAll(savedSortOrder);
+                    for (int i = 0; i < savedSortOrder.size(); i++) {
+                        savedSortOrder.get(i).setSortType(sortDirections[i] ?
+                                TableColumn.SortType.ASCENDING : TableColumn.SortType.DESCENDING);
+                    }
+
+                    if (graphTab.getContent() instanceof GraphView graph) {
+                        graph.refreshGraph(tableView.getItems(), this, tableTab, tableView);
+                    }
+                    if (mapTab.getContent() instanceof MapView mv) {
+                        mv.refreshMap(tableView.getItems());
+                    }
+                });
+            } catch (Exception ex) {
+                Platform.runLater(() -> new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait());
+            }
+        }).start();
     }
 }

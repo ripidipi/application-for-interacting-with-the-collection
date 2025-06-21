@@ -10,6 +10,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 public class Server {
 
@@ -39,16 +40,27 @@ public class Server {
         return new ClientRequest(clientAddress, objectIn);
     }
 
-    public static void sendResponse(DatagramChannel server, SocketAddress address) throws java.io.IOException {
+    public static void sendResponse(DatagramChannel server, SocketAddress address) throws IOException {
         String response = PreparingOfOutputStream.getOutMessage();
         byte[] data = response.getBytes(StandardCharsets.UTF_8);
+
         final int CHUNK_SIZE = 1000;
-        int offset = 0;
-        while (offset < data.length) {
-            int len = Math.min(CHUNK_SIZE, data.length - offset);
-            ByteBuffer buf = ByteBuffer.wrap(data, offset, len);
+        int requestId = new Random().nextInt();
+        int totalChunks = (data.length + CHUNK_SIZE - 1) / CHUNK_SIZE;
+
+        for (int seq = 0; seq < totalChunks; seq++) {
+            int offset = seq * CHUNK_SIZE;
+            int len    = Math.min(CHUNK_SIZE, data.length - offset);
+
+            ByteBuffer buf = ByteBuffer.allocate(4 + 4 + 4 + len);
+            buf.putInt(requestId);
+            buf.putInt(seq);
+            buf.putInt(totalChunks);
+            buf.put(data, offset, len);
+            buf.flip();
+
             server.send(buf, address);
-            offset += len;
         }
     }
+
 }
