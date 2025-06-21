@@ -3,146 +3,173 @@ package gui;
 import collection.FormOfEducation;
 import collection.Semester;
 import collection.StudyGroup;
+import javafx.animation.FadeTransition;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableView;
-import java.util.List;
-import java.util.ArrayList;
+import javafx.util.Duration;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class MapView extends StackPane {
     private final ImageView background;
     private final Group mapGroup = new Group();
     private final List<StudyGroup> groups;
-    private final TableView<StudyGroup> tableView;
     private final Tab tableTab;
-
-    private double minX, maxX, minY, maxY;
+    private final TableView<StudyGroup> tableView;
+    private final Map<FormOfEducation, Image> iconMap = new EnumMap<>(FormOfEducation.class);
+    private double rangeX = 1, rangeY = 1;
 
     public MapView(List<StudyGroup> groups, Tab tableTab, TableView<StudyGroup> tableView) {
         this.groups = new ArrayList<>(groups);
         this.tableTab = tableTab;
         this.tableView = tableView;
+        loadIcons();
+        background = createBackground();
 
-        Image img = new Image(getClass().getResourceAsStream("/images/map.jpg"));
-        background = new ImageView(img);
-        background.setPreserveRatio(true);
-        background.setFitWidth(800);
-        background.setFitHeight(600);
+        Pane overlay = new Pane(mapGroup);
+        overlay.setPickOnBounds(false);
+        enableZoomAndPan(overlay);
 
-        getChildren().addAll(background, mapGroup);
-        calculateBounds();
+        getChildren().addAll(background, overlay);
+        setPadding(new Insets(10));
+
+        calculateRanges();
         drawPoints();
     }
 
-    private void calculateBounds() {
-        minX = Double.MAX_VALUE;
-        minY = Double.MAX_VALUE;
-        maxX = Double.MIN_VALUE;
-        maxY = Double.MIN_VALUE;
+    private void loadIcons() {
+        iconMap.put(FormOfEducation.FULL_TIME_EDUCATION, load("/images/full_time.png"));
+        iconMap.put(FormOfEducation.DISTANCE_EDUCATION, load("/images/distance.png"));
+        iconMap.put(FormOfEducation.EVENING_CLASSES, load("/images/evening.png"));
+    }
 
+    private Image load(String path) {
+        return new Image(getClass().getResourceAsStream(path));
+    }
+
+    private ImageView createBackground() {
+        ImageView view = new ImageView(load("/images/map.jpg"));
+        view.setPreserveRatio(true);
+        view.setFitWidth(900);
+        view.setFitHeight(650);
+        view.setEffect(new DropShadow(10, Color.gray(0, 0.4)));
+        return view;
+    }
+
+    private void enableZoomAndPan(Pane pane) {
+        pane.setOnScroll((ScrollEvent e) -> {
+            double factor = e.getDeltaY() > 0 ? 1.15 : 0.85;
+            pane.setScaleX(pane.getScaleX() * factor);
+            pane.setScaleY(pane.getScaleY() * factor);
+            e.consume();
+        });
+        final Delta drag = new Delta();
+        pane.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.MIDDLE) {
+                drag.x = e.getSceneX(); drag.y = e.getSceneY();
+            }
+        });
+        pane.setOnMouseDragged(e -> {
+            if (e.getButton() == MouseButton.MIDDLE) {
+                pane.setTranslateX(pane.getTranslateX() + e.getSceneX() - drag.x);
+                pane.setTranslateY(pane.getTranslateY() + e.getSceneY() - drag.y);
+                drag.x = e.getSceneX(); drag.y = e.getSceneY();
+            }
+        });
+    }
+
+    private static class Delta { double x, y; }
+
+    private void calculateRanges() {
+        rangeX = 1; rangeY = 1;
         for (StudyGroup g : groups) {
             if (g.getCoordinates() == null) continue;
-            Long x = g.getCoordinates().x();
-            Float y = g.getCoordinates().y();
-            if (x == null || y == null) continue;
-            minX = Math.min(minX, x);
-            maxX = Math.max(maxX, x);
-            minY = Math.min(minY, y);
-            maxY = Math.max(maxY, y);
+            Long x = g.getCoordinates().x(); Float y = g.getCoordinates().y();
+            if (x != null) rangeX = Math.max(rangeX, Math.abs(x));
+            if (y != null) rangeY = Math.max(rangeY, Math.abs(y));
         }
-        if (minX == Double.MAX_VALUE) minX = 0;
-        if (minY == Double.MAX_VALUE) minY = 0;
-        if (maxX == Double.MIN_VALUE) maxX = 0;
-        if (maxY == Double.MIN_VALUE) maxY = 0;
-        // Avoid zero-size
-        if (maxX == minX) { maxX += 1; minX -= 1; }
-        if (maxY == minY) { maxY += 1; minY -= 1; }
+
+        rangeX *= 0.4;
+        rangeY *= 0.1;
     }
 
     public void refreshMap(List<StudyGroup> newGroups) {
-        groups.clear();
-        groups.addAll(newGroups);
-        calculateBounds();
-        drawPoints();
+        groups.clear(); groups.addAll(newGroups);
+        calculateRanges(); drawPoints();
     }
 
     private void drawPoints() {
         mapGroup.getChildren().clear();
-        if (groups.isEmpty()) return;
-
         Bounds b = background.getBoundsInParent();
         if (b.isEmpty()) return;
+        double w = b.getWidth(), h = b.getHeight();
+        double cx = w / 2, cy = h / 2;
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-        double width = b.getWidth();
-        double height = b.getHeight();
-        double scaleX = width  / (maxX - minX);
-        double scaleY = height / (maxY - minY);
-        double scale = Math.min(scaleX, scaleY);
+        for (StudyGroup g : groups) {
+            if (g.getCoordinates() == null) continue;
+            Long gx = g.getCoordinates().x(); Float gy = g.getCoordinates().y();
+            if (gx == null || gy == null) continue;
 
-        for (StudyGroup group : groups) {
-            if (group.getCoordinates() == null) continue;
-            Long x = group.getCoordinates().x();
-            Float y = group.getCoordinates().y();
-            if (x == null || y == null) continue;
+            double px = cx + (gx / rangeX) * (w / 1.5);
+            double py = cy - (gy / rangeY) * (h / 1.2);
 
-            double pixelX = b.getMinX() + (x - minX) * scale;
-            double pixelY = b.getMinY() + (maxY - y) * scale;
-
-            double radius = Math.max(8, Math.log10(group.getStudentCount() + 1) * 6);
-            Color color = getColorByFormAndSemester(group.getFormOfEducation(), group.getSemester());
-
-            Circle circle = new Circle(pixelX, pixelY, radius, color);
-            circle.setStroke(Color.BLACK);
+            double radius = Math.min(15, 4 + Math.log(g.getStudentCount() + 1) * 1.5);
+            Circle circle = new Circle(px, py, radius);
+            circle.setFill(getColorByForm(g.getFormOfEducation()));
+            circle.setStroke(Color.WHITE);
             circle.setStrokeWidth(1);
-            circle.setOpacity(0.85);
+            circle.setEffect(new DropShadow(4, Color.gray(0, 0.25)));
 
-            Text label = new Text(group.getId().toString());
-            label.setFont(Font.font(10));
-            label.setX(pixelX - radius/2);
-            label.setY(pixelY + radius/2);
+            ImageView iv = new ImageView(iconMap.get(g.getFormOfEducation()));
+            iv.setFitWidth(radius);
+            iv.setFitHeight(radius);
+            iv.setTranslateX(px - radius * 0.5);
+            iv.setTranslateY(py - radius * 0.5);
 
-            circle.setOnMouseClicked(e -> {
-                tableView.getSelectionModel().select(group);
-                tableView.scrollTo(group);
+            Group grp = new Group(circle, iv);
+            FadeTransition ft = new FadeTransition(Duration.millis(300), grp);
+            ft.setFromValue(0); ft.setToValue(1); ft.play();
+
+            Tooltip tip = new Tooltip(
+                    "ID: " + g.getId() + "\n" +
+                            g.getName() + "\nStudents: " + g.getStudentCount() +
+                            "\nForm: " + g.getFormOfEducation() +
+                            "\nSemester: " + g.getSemester() +
+                            "\nDate: " + g.getGroupAdmin().birthday().format(fmt)
+            );
+            Tooltip.install(grp, tip);
+
+            grp.setOnMouseClicked(e -> {
+                tableView.getSelectionModel().select(g);
+                tableView.scrollTo(g);
                 tableTab.getTabPane().getSelectionModel().select(tableTab);
             });
 
-            mapGroup.getChildren().addAll(circle, label);
+            mapGroup.getChildren().add(grp);
         }
     }
 
-    private Color getColorByFormAndSemester(FormOfEducation form, Semester semester) {
-        if (form == null || semester == null) return Color.LIGHTGRAY;
-        return switch (form) {
-            case FULL_TIME_EDUCATION -> switch (semester) {
-                case THIRD -> Color.web("#4E79A7");
-                case FOURTH -> Color.web("#A0CBE8");
-                case FIFTH -> Color.web("#76B7B2");
-                case SEVENTH -> Color.web("#59A14F");
-                case EIGHTH -> Color.web("#8CD17D");
-            };
-            case DISTANCE_EDUCATION -> switch (semester) {
-                case THIRD -> Color.web("#F28E2B");
-                case FOURTH -> Color.web("#FFBE7D");
-                case FIFTH -> Color.web("#E15759");
-                case SEVENTH -> Color.web("#FF9D9A");
-                case EIGHTH -> Color.web("#B6992D");
-            };
-            case EVENING_CLASSES -> switch (semester) {
-                case THIRD -> Color.web("#B07AA1");
-                case FOURTH -> Color.web("#D4A6C8");
-                case FIFTH -> Color.web("#9D7660");
-                case SEVENTH -> Color.web("#D7B5A6");
-                case EIGHTH -> Color.web("#499894");
-            };
+    private Color getColorByForm(FormOfEducation f) {
+        return switch (f) {
+            case FULL_TIME_EDUCATION -> Color.web("#4E79A7");
+            case DISTANCE_EDUCATION -> Color.web("#F28E2B");
+            case EVENING_CLASSES -> Color.web("#B07AA1");
         };
     }
 }

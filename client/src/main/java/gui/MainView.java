@@ -5,6 +5,7 @@ import collection.Semester;
 import commands.Commands;
 import exceptions.ServerDisconnect;
 import io.Authentication;
+import io.DistributionOfTheOutputStream;
 import io.Server;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -639,7 +640,7 @@ public class MainView {
         new Thread(() -> {
             try {
                 String rawResponse = Server.interaction(new Request<>(Commands.HELP, null));
-                String response = rawResponse;
+                String response = DistributionOfTheOutputStream.printFromServer(rawResponse);
                 StringBuilder htmlContent = new StringBuilder("<html><body style='font-family: sans-serif;'>");
                 Arrays.stream(response.split("\n")).forEach(line -> {
                     if (line.matches("^\\s*\\w+.*")) {
@@ -662,7 +663,7 @@ public class MainView {
         new Thread(() -> {
             try {
                 String rawResponse = Server.interaction(new Request<>(Commands.INFO, null));
-                String response = rawResponse;
+                String response = DistributionOfTheOutputStream.printFromServer(rawResponse);
                 StringBuilder htmlContent = new StringBuilder("<html><body style='font-family: sans-serif;'>");
                 for (String line : response.split("\n")) {
                     if (line.toLowerCase().contains("количество элементов") || line.toLowerCase().contains("elements")) {

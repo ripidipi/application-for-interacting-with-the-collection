@@ -22,7 +22,7 @@ public class Server {
     private static final int SERVER_PORT = 6600;
 
     public static String interaction(Request<?> request) throws ServerDisconnect {
-        final int HEADER = 4 + 4 + 4;          // 3 поля по 4 байта
+        final int HEADER = 4 + 4 + 4;
         final int CHUNK_SIZE = 1000;
         Map<Integer, byte[]> chunks = new ConcurrentHashMap<>();
         int expectedChunks = -1;
@@ -32,14 +32,12 @@ public class Server {
         try (DatagramChannel client = DatagramChannel.open()) {
             client.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
 
-            // Отправляем запрос (как раньше)...
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try (ObjectOutputStream oout = new ObjectOutputStream(bout)) {
                 oout.writeObject(request);
             }
             client.write(ByteBuffer.wrap(bout.toByteArray()));
 
-            // Принимаем куски
             while (System.currentTimeMillis() < deadline) {
                 ByteBuffer recv = ByteBuffer.allocate(HEADER + CHUNK_SIZE);
                 client.configureBlocking(false);
@@ -61,7 +59,6 @@ public class Server {
                     expectedChunks = total;
                 }
                 if (rid != requestId) {
-                    // Пакет не от нашей сессии — игнорируем
                     continue;
                 }
 
