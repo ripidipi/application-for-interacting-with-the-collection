@@ -19,7 +19,7 @@ import storage.Request;
 
 public class Server {
     private static final String SERVER_HOST = "127.0.0.1";
-    private static final int SERVER_PORT = 6600;
+    private static final int SERVER_PORT = 6601;
 
     public static String interaction(Request<?> request) throws ServerDisconnect {
         final int HEADER = 4 + 4 + 4;

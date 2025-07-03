@@ -171,7 +171,7 @@ public class GraphView extends Pane {
             node.setStrokeWidth(2);
             node.setPickOnBounds(true);
             ScaleTransition st = new ScaleTransition(Duration.millis(200), node);
-            node.setOnMouseEntered(e -> { st.setToX(1.2); st.setToY(1.2); st.playFromStart(); });
+            node.setOnMouseEntered(e -> { st.setToX(1.5); st.setToY(1.5); st.playFromStart(); });
             node.setOnMouseExited(e -> { st.setToX(1.0); st.setToY(1.0); st.playFromStart(); });
             int idx = i;
             node.setOnMouseClicked(e -> handleNodeClick(idx, parent, tableTab, tableView));
@@ -209,6 +209,9 @@ public class GraphView extends Pane {
             node.setStroke(stroke);
             node.setStrokeWidth(2);
             node.setPickOnBounds(true);
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), node);
+            node.setOnMouseEntered(e -> { st.setToX(1.5); st.setToY(1.5); st.playFromStart(); });
+            node.setOnMouseExited(e -> { st.setToX(1.0); st.setToY(1.0); st.playFromStart(); });
             int idx = i;
             node.setOnMouseClicked(e -> handleNodeClick(idx, parent, tableTab, tableView));
             Text label = new Text(group.getId().toString());

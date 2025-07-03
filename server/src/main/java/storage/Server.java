@@ -14,7 +14,7 @@ import java.util.Random;
 
 public class Server {
 
-    private static final int SERVER_PORT = 6600;
+    private static final int SERVER_PORT = 6601;
     private static final int TREADS_QUANTITY = 5;
 
     public static int getServerPort() {
